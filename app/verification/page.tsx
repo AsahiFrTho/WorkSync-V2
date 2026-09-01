@@ -60,12 +60,30 @@ export default function VerificationPage() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Employer Verification Cell"
-        title="Employer Verification"
-        description="Approve, reject, partially verify, request evidence, or flag duplicate/suspicious employer records. Verified placements feed the verified-placement-rate metric."
+        eyebrow="MSSDS • STATE AUDIT & COMPLIANCE AUTHORITY"
+        title="Employer Verification & Compliance Audit"
+        description="State regulatory review cell: authenticate employer-submitted wage records, audit joining documentation, detect duplicate claims, and authorize verified placement metrics for government subsidy disbursal."
       />
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
+          
+          {/* Governance vs. Operational Clarity Banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-3.5 text-xs text-muted-foreground shadow-2xs mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                <BadgeCheck className="size-4" />
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">State Regulatory Audit Cell: </span>
+                <span>
+                  While hiring partners submit onboarding records via the <strong>Employer Portal (/employer)</strong>, this verification cell serves as the <strong>independent state audit authority</strong> verifying wage proof, matching EPFO data, and sanctioning milestone subsidy disbursals.
+                </span>
+              </div>
+            </div>
+            <span className="shrink-0 rounded-md border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              AUDIT CELL
+            </span>
+          </div>
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-foreground">

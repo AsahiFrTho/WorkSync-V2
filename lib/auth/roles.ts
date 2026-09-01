@@ -75,10 +75,10 @@ export const SECTION_ACCESS: { prefix: string; roles: Role[] }[] = [
   { prefix: "/trainee", roles: ["admin", "trainee"] },
   { prefix: "/insights", roles: ["admin", "provider"] },
   { prefix: "/skillgaps", roles: ["admin", "provider"] },
+  { prefix: "/scorecard", roles: ["admin", "provider"] },
   { prefix: "/learners", roles: ["admin"] },
   { prefix: "/followups", roles: ["admin"] },
   { prefix: "/verification", roles: ["admin"] },
-  { prefix: "/scorecard", roles: ["admin"] },
   { prefix: "/dataquality", roles: ["admin"] },
   { prefix: "/settings", roles: ["admin"] },
 ];

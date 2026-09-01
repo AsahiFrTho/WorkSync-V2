@@ -139,15 +139,33 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Programme Configuration"
-        title="Settings"
-        description="Programme-level configuration — name, reference lists, consent policy and notification rules. Saved to the backend and used across forms, filters and tags."
+        eyebrow="MSSDS • STATEWIDE GOVERNANCE & THRESHOLD POLICY"
+        title="Programme Governance & Data Settings"
+        description="Configure system-wide administrative policy: data retention horizons under DPDP regulations, standardized non-placement reason codes, automated alert escalation rules, and institutional thresholds."
       />
       {node}
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
           {activeSettings ? (
             <>
+              {/* Conceptual Role Explainer Banner */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-3.5 text-xs text-muted-foreground shadow-2xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                    <Cog className="size-4" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground">Statewide Governance Policy Configuration: </span>
+                    <span>
+                      Answers: <strong>"How is our statewide governance policy configured?"</strong> Defines the structural rules governing all training providers: 5-year longitudinal retention horizons, standard non-placement taxonomies, and automated alert notification thresholds.
+                    </span>
+                  </div>
+                </div>
+                <span className="shrink-0 rounded-md border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                  POLICY CONFIG
+                </span>
+              </div>
+
               <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
                 <div>
                   <h2 className="text-sm font-semibold text-foreground">

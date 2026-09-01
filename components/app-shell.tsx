@@ -29,98 +29,186 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { GlobalSearch } from '@/components/global-search'
 import { ROLES, sectionsForRole, type Role } from '@/lib/auth/roles'
 
-const stakeholderPortals = [
-  {
-    label: 'Government / Admin',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    hint: 'State-wide macro metrics',
-    roleBadge: 'Admin',
-  },
-  {
-    label: 'Training Provider',
-    href: '/analytics',
-    icon: LineChart,
-    hint: 'Skill gaps & performance',
-    roleBadge: 'Provider',
-  },
-  {
-    label: 'Employer Portal',
-    href: '/employer',
-    icon: Building2,
-    hint: 'Join & wage verification',
-    roleBadge: 'Employer',
-  },
-  {
-    label: 'Trainee Passport',
-    href: '/trainee',
-    icon: UserCheck,
-    hint: 'Verifiable outcome record',
-    roleBadge: 'Trainee',
-  },
-]
+interface NavItem {
+  label: string
+  href: string
+  icon: typeof LayoutDashboard
+  hint: string
+  roleBadge: string
+}
 
-const intelligenceTools = [
-  {
-    label: 'Skill Gap Intelligence',
-    href: '/skillgaps',
-    icon: Puzzle,
-    hint: 'Competency deficit engine',
-    roleBadge: 'Engine',
-  },
-  {
-    label: 'AI Insights & Policy',
-    href: '/insights',
-    icon: Sparkles,
-    hint: 'Automated policy signals',
-    roleBadge: 'Policy AI',
-  },
-]
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
 
-const operationsTools = [
-  {
-    label: 'Learners',
-    href: '/learners',
-    icon: Users,
-    hint: 'Registry & consent records',
-    roleBadge: 'Registry',
-  },
-  {
-    label: 'Follow-ups',
-    href: '/followups',
-    icon: PhoneCall,
-    hint: 'Contact queue & outcomes',
-    roleBadge: 'Field',
-  },
-  {
-    label: 'Employer Verification',
-    href: '/verification',
-    icon: BadgeCheck,
-    hint: 'Approve / reject / evidence',
-    roleBadge: 'Verifier',
-  },
-  {
-    label: 'Provider Scorecard',
-    href: '/scorecard',
-    icon: Building2,
-    hint: 'Provider accountability',
-    roleBadge: 'Pulse',
-  },
-  {
-    label: 'Data Quality',
-    href: '/dataquality',
-    icon: ClipboardCheck,
-    hint: 'Audit & completeness',
-    roleBadge: 'Audit',
-  },
-  {
-    label: 'Settings',
-    href: '/settings',
-    icon: SettingsIcon,
-    hint: 'Programme configuration',
-    roleBadge: 'Admin',
-  },
-]
+function getNavigationForRole(role: Role): NavSection[] {
+  if (role === 'provider') {
+    return [
+      {
+        title: 'Provider Performance',
+        items: [
+          {
+            label: 'Training & Placement',
+            href: '/analytics',
+            icon: LineChart,
+            hint: 'Cohort yield & outcomes',
+            roleBadge: 'Provider',
+          },
+          {
+            label: 'Institutional Scorecard',
+            href: '/scorecard',
+            icon: Building2,
+            hint: 'Accountability & ranking',
+            roleBadge: 'Scorecard',
+          },
+        ],
+      },
+      {
+        title: 'Curriculum & Intelligence',
+        items: [
+          {
+            label: 'Skill Gap Intelligence',
+            href: '/skillgaps',
+            icon: Puzzle,
+            hint: 'Deficit engine & simulator',
+            roleBadge: 'Engine',
+          },
+          {
+            label: 'AI Course Improvements',
+            href: '/insights',
+            icon: Sparkles,
+            hint: 'Actionable trade signals',
+            roleBadge: 'Course AI',
+          },
+        ],
+      },
+    ]
+  }
+
+  if (role === 'employer') {
+    return [
+      {
+        title: 'Employer Portal',
+        items: [
+          {
+            label: 'Talent & Verification',
+            href: '/employer',
+            icon: Building2,
+            hint: 'Joining & wage verification',
+            roleBadge: 'Employer',
+          },
+        ],
+      },
+    ]
+  }
+
+  if (role === 'trainee') {
+    return [
+      {
+        title: 'Trainee Portal',
+        items: [
+          {
+            label: 'My Outcome Passport',
+            href: '/trainee',
+            icon: UserCheck,
+            hint: 'Verifiable credentials & wage history',
+            roleBadge: 'Passport',
+          },
+        ],
+      },
+    ]
+  }
+
+  // Default: Government / Administrator
+  return [
+    {
+      title: 'Executive Oversight',
+      items: [
+        {
+          label: 'State Command Center',
+          href: '/dashboard',
+          icon: LayoutDashboard,
+          hint: 'Statewide macro metrics',
+          roleBadge: 'State',
+        },
+        {
+          label: 'Statewide Analytics',
+          href: '/analytics',
+          icon: LineChart,
+          hint: 'Provider & trade analytics',
+          roleBadge: 'Analytics',
+        },
+      ],
+    },
+    {
+      title: 'Intelligence & Policy',
+      items: [
+        {
+          label: 'Skill Gap Intelligence',
+          href: '/skillgaps',
+          icon: Puzzle,
+          hint: 'State deficit & bridge planning',
+          roleBadge: 'Engine',
+        },
+        {
+          label: 'AI Policy Insights',
+          href: '/insights',
+          icon: Sparkles,
+          hint: 'Automated policy signals',
+          roleBadge: 'Policy AI',
+        },
+        {
+          label: 'Provider Scorecards',
+          href: '/scorecard',
+          icon: Building2,
+          hint: 'VTP ranking & accountability',
+          roleBadge: 'Scorecard',
+        },
+      ],
+    },
+    {
+      title: 'Governance & Operations',
+      items: [
+        {
+          label: 'Learner Registry',
+          href: '/learners',
+          icon: Users,
+          hint: 'Consent & outcome records',
+          roleBadge: 'Registry',
+        },
+        {
+          label: 'Verification & Compliance',
+          href: '/verification',
+          icon: BadgeCheck,
+          hint: 'Statewide audit queue',
+          roleBadge: 'Audit',
+        },
+        {
+          label: 'Follow-up Operations',
+          href: '/followups',
+          icon: PhoneCall,
+          hint: 'Longitudinal contact queue',
+          roleBadge: 'Field',
+        },
+        {
+          label: 'Data Quality Audit',
+          href: '/dataquality',
+          icon: ClipboardCheck,
+          hint: 'Hygiene & completeness check',
+          roleBadge: 'Hygiene',
+        },
+        {
+          label: 'Programme Settings',
+          href: '/settings',
+          icon: SettingsIcon,
+          hint: 'Policy & threshold config',
+          roleBadge: 'Config',
+        },
+      ],
+    },
+  ]
+}
 
 // Icons are a UI-only concern, so they're mapped here rather than inside
 // lib/auth/roles.ts -- that file is imported by proxy.ts (server) too, and
@@ -144,30 +232,7 @@ interface SessionInfo {
 // httpOnly precisely so client-side code (including this component) cannot
 // read or forge it. This hook is the one sanctioned way the UI finds out
 // who's signed in.
-function useSession() {
-  const [session, setSession] = useState<SessionInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/auth/session')
-      .then((res) => res.json())
-      .then((json) => {
-        if (!cancelled) setSession(json.session || null)
-      })
-      .catch(() => {
-        if (!cancelled) setSession(null)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return { session, loading }
-}
+import { useSessionContext } from '@/lib/auth/session-context'
 
 function Brand() {
   return (
@@ -224,22 +289,21 @@ function ResetDataButton() {
 }
 
 // Signs the user out by asking the server to delete the session cookie
-// (see app/api/auth/logout/route.ts), then sends them to /login. We
-// deliberately do NOT just navigate to /login without calling the API --
-// that would leave the old session cookie valid, so typing the dashboard
-// URL back into the address bar would let them straight back in.
+// (see app/api/auth/logout/route.ts), then sends them to /login.
 function SignOutButton({ className, children }: { className?: string; children: React.ReactNode }) {
   const router = useRouter()
+  const { setSessionUser } = useSessionContext()
   const [busy, setBusy] = useState(false)
 
   const signOut = useCallback(async () => {
     setBusy(true)
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
+      setSessionUser(null)
     } finally {
       router.push('/login')
     }
-  }, [router])
+  }, [router, setSessionUser])
 
   return (
     <button type="button" onClick={() => void signOut()} disabled={busy} className={className}>
@@ -251,43 +315,39 @@ function SignOutButton({ className, children }: { className?: string; children: 
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { session, loading } = useSession()
+  const { session, role, loading } = useSessionContext()
 
-  // Fall back to the Admin identity while the session is still loading so
-  // the layout doesn't flash empty/broken on first paint. proxy.ts has
-  // already verified real access before this page was ever served, so by
-  // the time this component renders we're guaranteed a valid session is
-  // sitting in the cookie -- this is purely about avoiding a loading flicker,
-  // not a security boundary (that boundary is proxy.ts).
-  const role: Role = session?.role || 'admin'
   const roleInfo = ROLES[role]
   const RoleIcon = ROLE_ICONS[role]
-  const allowedSections = sectionsForRole(role)
-  const canSee = (href: string) => allowedSections.some((prefix) => href.startsWith(prefix))
+  const navSections = getNavigationForRole(role)
+  const allNavItems = navSections.flatMap((s) => s.items)
 
-  const visiblePortals = stakeholderPortals.filter((item) => canSee(item.href))
-  const visibleIntelligence = intelligenceTools.filter((item) => canSee(item.href))
-  const visibleOperations = operationsTools.filter((item) => canSee(item.href))
-
-  const displayName = loading ? '…' : session?.name || roleInfo.label
-  const displayOrg = loading ? 'Verifying session…' : session?.email || roleInfo.organization
+  const displayName = loading && !session ? '…' : session?.name || roleInfo.label
+  const displayOrg = loading && !session ? 'Verifying session…' : session?.email || roleInfo.organization
 
   return (
-    <div className="flex min-h-screen w-full bg-background lg:h-screen lg:min-h-0 lg:overflow-hidden font-sans">
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col justify-between border-r border-border bg-sidebar lg:h-full lg:min-h-0 lg:overflow-y-auto">
-        <div className="flex flex-col gap-6 p-5">
+    <div className="flex min-h-screen w-full bg-background lg:h-screen lg:min-h-0 lg:overflow-hidden font-sans print:h-auto print:overflow-visible">
+      <aside className="hidden lg:flex w-[270px] shrink-0 flex-col justify-between border-r border-border bg-sidebar lg:h-full lg:min-h-0 lg:overflow-y-auto print:hidden">
+        <div className="flex flex-col gap-5 p-4">
           <Brand />
 
-          {visiblePortals.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between px-2.5">
+          {navSections.map((section, sIdx) => (
+            <div key={section.title} className="flex flex-col gap-1.5">
+              {sIdx > 0 && <div className="mb-2 h-px w-full bg-border" />}
+              <div className="flex items-center justify-between px-2">
                 <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-                  Stakeholder Portals
+                  {section.title}
                 </p>
               </div>
-              <nav className="flex flex-col gap-0.5" aria-label="Stakeholder portals">
-                {visiblePortals.map((item) => {
-                  const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              <nav className="flex flex-col gap-0.5" aria-label={section.title}>
+                {section.items.map((item) => {
+                  const active =
+                    pathname === item.href ||
+                    (item.href !== '/dashboard' &&
+                      item.href !== '/analytics' &&
+                      item.href !== '/employer' &&
+                      item.href !== '/trainee' &&
+                      pathname.startsWith(item.href))
                   const Icon = item.icon
                   return (
                     <Link
@@ -295,13 +355,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       href={item.href}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'group flex items-start justify-between rounded-lg px-3 py-2.5 text-xs transition-all duration-200 ease-in-out',
+                        'group flex items-start justify-between rounded-lg px-2.5 py-2 text-xs transition-all duration-200 ease-in-out',
                         active
                           ? 'border-l-2 border-primary bg-primary/10 text-foreground font-medium'
                           : 'border-l-2 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
                       )}
                     >
-                      <div className="flex items-start gap-2.5 min-w-0">
+                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
                         {Icon && (
                           <Icon
                             className={cn(
@@ -311,8 +371,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             aria-hidden="true"
                           />
                         )}
-                        <span className="flex flex-col leading-tight truncate">
-                          <span className="text-xs tracking-tight">{item.label}</span>
+                        <span className="flex flex-col leading-tight min-w-0">
+                          <span className="text-xs tracking-tight font-medium text-foreground whitespace-nowrap">{item.label}</span>
                           <span className="text-[10px] font-normal text-muted-foreground truncate">
                             {item.hint}
                           </span>
@@ -333,124 +393,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 })}
               </nav>
             </div>
-          )}
-
-          {visibleIntelligence.length > 0 && (
-            <>
-              <div className="h-px w-full bg-border" />
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between px-2.5">
-                  <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-                    Intelligence & Signals
-                  </p>
-                </div>
-                <nav className="flex flex-col gap-0.5" aria-label="Intelligence tools">
-                  {visibleIntelligence.map((item) => {
-                    const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-                    const Icon = item.icon
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        aria-current={active ? 'page' : undefined}
-                        className={cn(
-                          'group flex items-start justify-between rounded-lg px-3 py-2.5 text-xs transition-all duration-200 ease-in-out',
-                          active
-                            ? 'border-l-2 border-primary bg-primary/10 text-foreground font-medium'
-                            : 'border-l-2 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
-                        )}
-                      >
-                        <div className="flex items-start gap-2.5 min-w-0">
-                          {Icon && (
-                            <Icon
-                              className={cn(
-                                'mt-0.5 size-4 shrink-0 transition-colors duration-200 ease-in-out',
-                                active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
-                              )}
-                              aria-hidden="true"
-                            />
-                          )}
-                          <span className="flex flex-col leading-tight truncate">
-                            <span className="text-xs tracking-tight">{item.label}</span>
-                            <span className="text-[10px] font-normal text-muted-foreground truncate">
-                              {item.hint}
-                            </span>
-                          </span>
-                        </div>
-                        <span
-                          className={cn(
-                            'ml-1.5 mt-0.5 rounded border px-1.5 py-0.2 text-[9px] tracking-wide shrink-0 font-medium',
-                            active
-                              ? 'border-primary/25 bg-primary/10 text-primary'
-                              : 'border-border bg-muted text-muted-foreground',
-                          )}
-                        >
-                          {item.roleBadge}
-                        </span>
-                      </Link>
-                    )
-                  })}
-                </nav>
-              </div>
-            </>
-          )}
-
-          {visibleOperations.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between px-2.5">
-                <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-                  Programme Operations
-                </p>
-              </div>
-              <nav className="flex flex-col gap-0.5" aria-label="Programme operations">
-                {visibleOperations.map((item) => {
-                  const active = pathname === item.href || pathname.startsWith(item.href + '/')
-                  const Icon = item.icon
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'group flex items-start justify-between rounded-lg px-3 py-2.5 text-xs transition-all duration-200 ease-in-out',
-                        active
-                          ? 'border-l-2 border-primary bg-primary/10 text-foreground font-medium'
-                          : 'border-l-2 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
-                      )}
-                    >
-                      <div className="flex items-start gap-2.5 min-w-0">
-                        {Icon && (
-                          <Icon
-                            className={cn(
-                              'mt-0.5 size-4 shrink-0 transition-colors duration-200 ease-in-out',
-                              active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
-                            )}
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="flex flex-col leading-tight truncate">
-                          <span className="text-xs tracking-tight">{item.label}</span>
-                          <span className="text-[10px] font-normal text-muted-foreground truncate">
-                            {item.hint}
-                          </span>
-                        </span>
-                      </div>
-                      <span
-                        className={cn(
-                          'ml-1.5 mt-0.5 rounded border px-1.5 py-0.5 text-[9px] tracking-wide shrink-0 font-medium',
-                          active
-                            ? 'border-primary/25 bg-primary/10 text-primary'
-                            : 'border-border bg-muted text-muted-foreground',
-                        )}
-                      >
-                        {item.roleBadge}
-                      </span>
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
-          )}
+          ))}
         </div>
 
         <div className="border-t border-border p-4 space-y-2.5">
@@ -458,7 +401,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between gap-1 mb-1.5">
               <span className="flex items-center gap-1.5 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
                 <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
-                Active Session
+                Active Stakeholder
               </span>
               <span className="rounded px-1.5 py-0.2 text-[9px] font-medium border border-primary/25 bg-primary/10 text-primary">
                 {roleInfo.shortLabel}
@@ -497,8 +440,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:h-full lg:min-h-0 bg-background">
-        <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur lg:hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:h-full lg:min-h-0 bg-background print:overflow-visible">
+        <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur lg:hidden print:hidden">
           <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
             <Brand />
             <div className="flex items-center gap-1.5">
@@ -525,8 +468,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="flex gap-1.5 overflow-x-auto border-t border-border px-3 py-2 bg-card"
             aria-label="Primary mobile"
           >
-            {[...visiblePortals, ...visibleIntelligence, ...visibleOperations].map((item) => {
-              const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+            {allNavItems.map((item) => {
+              const active =
+                pathname === item.href ||
+                (item.href !== '/dashboard' &&
+                  item.href !== '/analytics' &&
+                  item.href !== '/employer' &&
+                  item.href !== '/trainee' &&
+                  pathname.startsWith(item.href))
               const Icon = item.icon
               return (
                 <Link

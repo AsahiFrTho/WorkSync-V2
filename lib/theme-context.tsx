@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    const saved = localStorage.getItem('kaushal-pulse-theme') as Theme | null
+    const saved = (localStorage.getItem('worksync-theme') || localStorage.getItem('kaushal-pulse-theme')) as Theme | null
     if (saved) {
       setTheme(saved)
     }
@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement
     root.classList.remove('light', 'dark')
     root.classList.add(theme)
-    localStorage.setItem('kaushal-pulse-theme', theme)
+    localStorage.setItem('worksync-theme', theme)
   }, [theme, mounted])
 
   const toggleTheme = () => {

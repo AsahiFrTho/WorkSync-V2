@@ -1,14 +1,5 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import Trainee from "@/models/trainee";
-import LearnerDetail from "@/models/learner-detail";
-import ConsentRecord from "@/models/consent-record";
-import OutcomeEvent from "@/models/outcome-event";
-import FollowUp from "@/models/follow-up";
-import EmployerVerification from "@/models/employer-verification";
-import SkillGapReport from "@/models/skill-gap-report";
-import ProgramSettings from "@/models/program-settings";
+import type { ProgramData, TraineeLite, LearnerDetail, ConsentRecord, OutcomeEvent, FollowUp, EmployerVerification, SkillGapReport, ProgramSettings } from "@/lib/types";
 
-// ── Date helpers (relative to "today" so the demo always looks current) ──
 const DAY = 86400000;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const addDays = (dstr: string, n: number) =>
@@ -22,7 +13,6 @@ const TODAY = iso(new Date());
 const ago = (days: number) => addDays(TODAY, -days);
 const agoMonths = (m: number, jitter = 0) => addDays(addMonths(TODAY, -m), jitter);
 
-// ── Static reference data (WorkSync seed) ──────────────────
 const PROVIDERS = [
   { id: "P1", name: "Nashik Skill Academy", district: "Nashik", status: "active" },
   { id: "P2", name: "Vidarbha Training Institute", district: "Nagpur", status: "active" },
@@ -100,8 +90,6 @@ interface LearnerSpec {
   skillGaps?: { skill: string; reportedBy: "employer" | "learner"; severity: "high" | "medium" | "low"; notes?: string }[];
 }
 
-// Specs are relative to TODAY: event dates via agoMonths/ago, follow-up
-// offsets via dueDate = TODAY + offsetDays (negative = overdue).
 const SPECS: LearnerSpec[] = [
   {
     name: "Snehal Jadhav", gender: "Female", category: "OBC", provider: "P1", batch: "RSA-N25A", consent: "a",
@@ -299,227 +287,191 @@ const SPECS: LearnerSpec[] = [
   },
 ];
 
-export async function POST() {
-  try {
-    await connectToDatabase();
+export function getFallbackProgramData(): ProgramData {
+  const settings: ProgramSettings = {
+    _id: "settings-singleton",
+    programName: "WorkSync — Skill Development Mission",
+    districts: ["Nashik", "Nagpur", "Pune"],
+    reasonCodes: REASON_CODES,
+    skillTags: SKILL_TAGS,
+    consentPolicy:
+      "Learner consent is taken before enrolment completes and covers outcome tracking, employer verification and programme analytics. Consent is valid for 24 months and can be revoked any time via call, SMS or in person. When consent is not active, personal identifiers are hidden and the learner appears only in aggregate, pseudonymised form.",
+    retentionPeriodMonths: 36,
+    notificationRules: {
+      followUpSameDay: true,
+      overdueDigest: "Daily 9:00 AM to coordinator",
+      consentExpiryReminderDays: 30,
+      channels: ["SMS", "WhatsApp", "Email", "IVR"],
+    },
+  };
 
-    // Idempotent: wipe only the NEW collections, keep existing Trainee /
-    // EmploymentRecord data (KP-* passport & employer workflows) intact.
-    await Promise.all([
-      LearnerDetail.deleteMany({}),
-      ConsentRecord.deleteMany({}),
-      OutcomeEvent.deleteMany({}),
-      FollowUp.deleteMany({}),
-      EmployerVerification.deleteMany({}),
-      SkillGapReport.deleteMany({}),
-      ProgramSettings.deleteMany({}),
-    ]);
+  const trainees: TraineeLite[] = [];
+  const details: LearnerDetail[] = [];
+  const consents: ConsentRecord[] = [];
+  const outcomes: OutcomeEvent[] = [];
+  const followUps: FollowUp[] = [];
+  const verifications: EmployerVerification[] = [];
+  const skillGaps: SkillGapReport[] = [];
 
-    const settings = await ProgramSettings.create({
-      singleton: "default",
-      programName: "WorkSync — Skill Development Mission",
-      districts: ["Nashik", "Nagpur", "Pune"],
-      reasonCodes: REASON_CODES,
-      skillTags: SKILL_TAGS,
-      consentPolicy:
-        "Learner consent is taken before enrolment completes and covers outcome tracking, employer verification and programme analytics. Consent is valid for 24 months and can be revoked any time via call, SMS or in person. When consent is not active, personal identifiers are hidden and the learner appears only in aggregate, pseudonymised form.",
-      retentionPeriodMonths: 36,
-      notificationRules: {
-        followUpSameDay: true,
-        overdueDigest: "Daily 9:00 AM to coordinator",
-        consentExpiryReminderDays: 30,
-        channels: ["SMS", "WhatsApp", "Email", "IVR"],
+  for (let i = 0; i < SPECS.length; i++) {
+    const spec = SPECS[i];
+    const provider = PROVIDERS.find((p) => p.id === spec.provider)!;
+    const batch = BATCHES[spec.batch];
+    const course = COURSES.find((c) => c.id === batch.course)!;
+    const traineeId = `KS-2025-${String(1024 + i)}`;
+    const blockList = BLOCKS[provider.district as keyof typeof BLOCKS] || ["City Center"];
+    const block = blockList[i % blockList.length];
+    const enrStart = agoMonths(18, -i % 3);
+    const given = spec.consent === "a";
+
+    const currentWage =
+      spec.outcomes
+        .filter((o) => o.outcomeType === "wage_employment" || o.outcomeType === "job_change")
+        .reduce((acc: number | undefined, o) => (o.monthlyWage != null ? Math.max(acc ?? 0, Number(o.monthlyWage)) : acc), undefined) ??
+      spec.outcomes
+        .filter((o) => o.outcomeType === "self_employment")
+        .reduce((acc: number | undefined, o) => (o.selfEmploymentIncome != null ? Math.max(acc ?? 0, Number(o.selfEmploymentIncome)) : acc), undefined) ??
+      0;
+
+    trainees.push({
+      _id: `t-${traineeId}`,
+      traineeId,
+      name: spec.name,
+      district: provider.district,
+      course: course.name,
+      status: spec.trainingStatus === "enrolled"
+        ? "enrolled"
+        : currentWage > 0
+          ? "employed"
+          : "completed",
+      monthlyWage: currentWage,
+      trainingProvider: `${provider.name}, ${provider.district}`,
+      trainingPeriod: {
+        startDate: addMonths(enrStart, 1),
+        endDate: addMonths(enrStart, 1 + Math.round(course.durationHours / 200)),
+        hours: course.durationHours,
       },
+      certificate: {
+        certificateId: `MSD-2025-${String(1024 + i).padStart(5, "0")}`,
+        issueDate: addMonths(enrStart, 3),
+        nsqfLevel: 4,
+        issuer: "NCVET / MSSDS",
+      },
+      createdAt: addMonths(enrStart, 0),
+      updatedAt: TODAY,
     });
 
-    let okTrainees = 0;
-    for (let i = 0; i < SPECS.length; i++) {
-      const spec = SPECS[i];
-      const provider = PROVIDERS.find((p) => p.id === spec.provider)!;
-      const batch = BATCHES[spec.batch];
-      const course = COURSES.find((c) => c.id === batch.course)!;
-      const traineeId = `KS-2025-${String(1024 + i)}`;
-      const blockList = BLOCKS[provider.district];
-      const block = blockList[i % blockList.length];
-      const enrStart = agoMonths(18, -i % 3);
-      const given = spec.consent === "a";
+    details.push({
+      _id: `d-${traineeId}`,
+      traineeId,
+      uniqueLearnerId: traineeId,
+      gender: spec.gender,
+      category: spec.category,
+      block,
+      phone: `9${String(100000000 + i * 1379).slice(0, 10)}`,
+      alternatePhone: i % 4 === 0 ? `9${String(700000000 + i * 331).slice(0, 10)}` : "",
+      email: `${spec.name.split(" ")[0].toLowerCase()}${i}@example.com`,
+      phoneNote: spec.phoneNote || "",
+      locationChanged: !!spec.locationChanged,
+      notes: spec.notes || "",
+      batchName: spec.batch,
+      batchLabel: batch.label,
+      updatedAt: TODAY,
+    });
 
-      const currentWage =
-        spec.outcomes
-          .filter((o) => o.outcomeType === "wage_employment" || o.outcomeType === "job_change")
-          .reduce((acc: number | undefined, o) => (o.monthlyWage != null ? Math.max(acc ?? 0, Number(o.monthlyWage)) : acc), undefined) ??
-        spec.outcomes
-          .filter((o) => o.outcomeType === "self_employment")
-          .reduce((acc: number | undefined, o) => (o.selfEmploymentIncome != null ? Math.max(acc ?? 0, Number(o.selfEmploymentIncome)) : acc), undefined) ??
-        0;
+    const consentDate = given ? addDays(enrStart, 1) : "";
+    consents.push({
+      _id: `c-${traineeId}`,
+      traineeId,
+      consentStatus: spec.consent === "a" ? "active" : spec.consent === "r" ? "revoked" : spec.consent === "e" ? "expired" : "missing",
+      consentDate: given ? consentDate : "",
+      consentMethod: given ? (["Form", "In-person", "SMS", "Call"][i % 4]) : "",
+      consentPurpose: given ? ["Outcome tracking", "Employer verification", "Analytics"] : [],
+      consentLastUpdated: given ? consentDate : spec.consent === "r" ? agoMonths(2, 5) : "",
+    });
 
-      const trainee = await Trainee.findOneAndUpdate(
-        { traineeId },
-        {
-          name: spec.name,
-          district: provider.district,
-          course: course.name,
-          status: spec.trainingStatus === "enrolled"
-            ? "enrolled"
-            : currentWage > 0
-              ? "employed"
-              : "completed",
-          monthlyWage: currentWage,
-          trainingProvider: `${provider.name}, ${provider.district}`,
-          trainingPeriod: {
-            startDate: new Date(addMonths(enrStart, 1)),
-            endDate: new Date(addMonths(enrStart, 1 + Math.round(course.durationHours / 200))),
-            hours: course.durationHours,
-          },
-          skills: spec.outcomes.flatMap((o) => ((o.skillsUsed as string[]) || []).slice(0, 6)),
-          certificate: {
-            certificateId: `MSD-2025-${String(1024 + i).padStart(5, "0")}`,
-            issueDate: new Date(addMonths(enrStart, 3)),
-            nsqfLevel: 4,
-            issuer: "NCVET / MSSDS",
-          },
-        },
-        { new: true, upsert: true }
-      );
-      okTrainees++;
-
-      await LearnerDetail.create({
+    for (let oi = 0; oi < spec.outcomes.length; oi++) {
+      const o = spec.outcomes[oi];
+      const { outcomeType, eventDate, ...rest } = o;
+      outcomes.push({
+        _id: `o-${traineeId}-${oi}`,
         traineeId,
-        uniqueLearnerId: traineeId,
-        gender: spec.gender,
-        category: spec.category,
-        block,
-        phone: `9${String(100000000 + i * 1379).slice(0, 10)}`,
-        alternatePhone: i % 4 === 0 ? `9${String(700000000 + i * 331).slice(0, 10)}` : "",
-        email: `${spec.name.split(" ")[0].toLowerCase()}${i}@example.com`,
-        phoneNote: spec.phoneNote || "",
-        locationChanged: !!spec.locationChanged,
-        notes: spec.notes || "",
-        batchName: spec.batch,
-        batchLabel: batch.label,
+        outcomeType: outcomeType as any,
+        eventDate,
+        source: "Coordinator",
+        ...rest,
       });
-
-      const consentDate = given ? addDays(enrStart, 1) : "";
-      await ConsentRecord.create({
-        traineeId,
-        consentStatus: spec.consent === "a" ? "active" : spec.consent === "r" ? "revoked" : spec.consent === "e" ? "expired" : "missing",
-        consentDate: given ? consentDate : "",
-        consentMethod: given ? (["Form", "In-person", "SMS", "Call"][i % 4]) : "",
-        consentPurpose: given ? ["Outcome tracking", "Employer verification", "Analytics"] : [],
-        consentLastUpdated: given ? consentDate : spec.consent === "r" ? agoMonths(2, 5) : "",
-      });
-
-      for (const o of spec.outcomes) {
-        const { outcomeType, eventDate, ...rest } = o;
-        await OutcomeEvent.create({
-          traineeId,
-          outcomeType,
-          eventDate,
-          source: "Coordinator",
-          tags: [],
-          ...rest,
-        } as never);
-      }
-
-      if (spec.verification) {
-        await EmployerVerification.create({
-          outcomeEventId: null, // linked below
-          traineeId,
-          employerName: spec.verification.employer,
-          jobRole: spec.verification.role,
-          startDate: spec.verification.startDate,
-          wage: spec.verification.wage,
-          verificationStatus: spec.verification.status,
-          verificationMethod:
-            ["verified", "partially_verified"].includes(spec.verification.status)
-              ? VERIFICATION_METHODS[i % VERIFICATION_METHODS.length]
-              : "",
-          verifierRemarks: spec.verification.remarks,
-          confidenceScore: spec.verification.confidence,
-          verifiedBy: spec.verification.status === "verified" ? "Arjun Pawar" : "",
-          verifiedAt: spec.verification.status === "verified" ? ago(15 + i) : "",
-          flagged: false,
-        });
-      }
-
-      for (const f of spec.followUps || []) {
-        await FollowUp.create({
-          traineeId,
-          dueDate: addDays(TODAY, f.offsetDays),
-          assignedTo: ["Sunita Wagh", "Rahul Kulkarni"][i % 2],
-          channel: f.channel || "Call",
-          status: f.status,
-          contactAttemptCount: f.attempts,
-          reason: f.reason,
-          notes: f.notes || "",
-          nextActionDate: f.status === "completed" ? "" : addDays(TODAY, Math.max(f.offsetDays + 7, 3)),
-          outcomeUpdated: f.status === "completed",
-          completedAt: f.status === "completed" ? addDays(TODAY, f.offsetDays) : "",
-          employmentStatus: f.employmentStatus || "",
-        });
-      }
-
-      for (const g of spec.skillGaps || []) {
-        await SkillGapReport.create({
-          traineeId,
-          courseId: course.id,
-          skillName: g.skill,
-          reportedBy: g.reportedBy,
-          severity: g.severity,
-          notes: g.notes || "",
-        });
-      }
     }
 
-    // Link the latest wage-employment outcome event to its verification only
-    // when the verification record's outcomeEventId is still null — keeps the
-    // profile's verification block honest.
-    const verifications = await EmployerVerification.find({ outcomeEventId: null }).lean();
-    for (const v of verifications) {
-      const latest = await OutcomeEvent.findOne({
-        traineeId: v.traineeId,
-        outcomeType: { $in: ["wage_employment", "job_change"] },
-      }).sort({ eventDate: -1 });
-      if (latest) {
-        await EmployerVerification.updateOne(
-          { _id: v._id },
-          { $set: { outcomeEventId: latest._id.toString() } }
-        );
-        if (latest.verifiedStatus === "not_required") {
-          await OutcomeEvent.updateOne(
-            { _id: latest._id },
-            {
-              $set: {
-                verifiedStatus:
-                  v.verificationStatus === "employer_unreachable"
-                    ? "unreachable"
-                    : v.verificationStatus,
-              },
-            }
-          );
-        }
-      }
+    if (spec.verification) {
+      verifications.push({
+        _id: `v-${traineeId}`,
+        outcomeEventId: `o-${traineeId}-0`,
+        traineeId,
+        employerName: spec.verification.employer,
+        jobRole: spec.verification.role,
+        startDate: spec.verification.startDate,
+        wage: spec.verification.wage,
+        verificationStatus: spec.verification.status,
+        verificationMethod:
+          ["verified", "partially_verified"].includes(spec.verification.status)
+            ? VERIFICATION_METHODS[i % VERIFICATION_METHODS.length]
+            : "",
+        verifierRemarks: spec.verification.remarks,
+        confidenceScore: spec.verification.confidence ?? undefined,
+        verifiedBy: spec.verification.status === "verified" ? "Arjun Pawar" : "",
+        verifiedAt: spec.verification.status === "verified" ? ago(15 + i) : "",
+        flagged: false,
+        createdAt: ago(15 + i),
+        updatedAt: TODAY,
+      });
     }
 
-    return Response.json({
-      success: true,
-      seeded: {
-        trainees: okTrainees,
-        details: await LearnerDetail.countDocuments(),
-        consents: await ConsentRecord.countDocuments(),
-        outcomes: await OutcomeEvent.countDocuments(),
-        followUps: await FollowUp.countDocuments(),
-        verifications: await EmployerVerification.countDocuments(),
-        skillGaps: await SkillGapReport.countDocuments(),
-        settings: !!settings,
-      },
-    });
-  } catch {
-    // Graceful offline fallback: reset operation acknowledges demo data reload
-    return Response.json({
-      success: true,
-      offline: true,
-      message: "Reset demo dataset successfully (in-memory evaluation mode)",
-    });
+    for (let fi = 0; fi < (spec.followUps || []).length; fi++) {
+      const f = spec.followUps![fi];
+      followUps.push({
+        _id: `f-${traineeId}-${fi}`,
+        traineeId,
+        dueDate: addDays(TODAY, f.offsetDays),
+        assignedTo: ["Sunita Wagh", "Rahul Kulkarni"][i % 2],
+        channel: f.channel || "Call",
+        status: f.status,
+        contactAttemptCount: f.attempts,
+        reason: f.reason,
+        notes: f.notes || "",
+        nextActionDate: f.status === "completed" ? "" : addDays(TODAY, Math.max(f.offsetDays + 7, 3)),
+        outcomeUpdated: f.status === "completed",
+        completedAt: f.status === "completed" ? addDays(TODAY, f.offsetDays) : "",
+        employmentStatus: f.employmentStatus || "",
+        createdAt: addDays(TODAY, f.offsetDays - 10),
+        updatedAt: TODAY,
+      });
+    }
+
+    for (let gi = 0; gi < (spec.skillGaps || []).length; gi++) {
+      const g = spec.skillGaps![gi];
+      skillGaps.push({
+        _id: `sg-${traineeId}-${gi}`,
+        traineeId,
+        courseId: course.id,
+        skillName: g.skill,
+        reportedBy: g.reportedBy,
+        severity: g.severity,
+        notes: g.notes || "",
+        createdAt: ago(30 + i),
+        updatedAt: TODAY,
+      });
+    }
   }
+
+  return {
+    trainees,
+    details,
+    consents,
+    outcomes,
+    followUps,
+    verifications,
+    skillGaps,
+    settings,
+  };
 }
