@@ -22,11 +22,11 @@ const TODAY = iso(new Date());
 const ago = (days: number) => addDays(TODAY, -days);
 const agoMonths = (m: number, jitter = 0) => addDays(addMonths(TODAY, -m), jitter);
 
-// ── Static reference data (ported from KaushalSetu seed) ──────────────────
+// ── Static reference data (WorkSync seed) ──────────────────
 const PROVIDERS = [
   { id: "P1", name: "Nashik Skill Academy", district: "Nashik", status: "active" },
   { id: "P2", name: "Vidarbha Training Institute", district: "Nagpur", status: "active" },
-  { id: "P3", name: "Pune Kaushal Kendra", district: "Pune", status: "active" },
+  { id: "P3", name: "Pune Vocational Training Center", district: "Pune", status: "active" },
 ];
 
 const COURSES = [
@@ -317,7 +317,7 @@ export async function POST() {
 
     const settings = await ProgramSettings.create({
       singleton: "default",
-      programName: "KaushalSetu — Skill Development Mission",
+      programName: "WorkSync — Skill Development Mission",
       districts: ["Nashik", "Nagpur", "Pune"],
       reasonCodes: REASON_CODES,
       skillTags: SKILL_TAGS,

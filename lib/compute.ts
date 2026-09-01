@@ -1,5 +1,5 @@
 // ── Derived metrics & selectors ─────────────────────────────────────────────
-// Ported from the Source (KaushalSetu) compute engine and adapted to the
+// WorkSync Longitudinal Skilling Intelligence Compute Engine
 // Target's API shapes: events are keyed by `traineeId` and learners are a
 // join of Trainee + LearnerDetail + ConsentRecord (see lib/types.ts).
 

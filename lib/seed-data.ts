@@ -16,7 +16,7 @@ const agoMonths = (m: number, jitter = 0) => addDays(addMonths(TODAY, -m), jitte
 const PROVIDERS = [
   { id: "P1", name: "Nashik Skill Academy", district: "Nashik", status: "active" },
   { id: "P2", name: "Vidarbha Training Institute", district: "Nagpur", status: "active" },
-  { id: "P3", name: "Pune Kaushal Kendra", district: "Pune", status: "active" },
+  { id: "P3", name: "Pune Vocational Training Center", district: "Pune", status: "active" },
 ];
 
 const COURSES = [
@@ -290,7 +290,7 @@ const SPECS: LearnerSpec[] = [
 export function getFallbackProgramData(): ProgramData {
   const settings: ProgramSettings = {
     _id: "settings-singleton",
-    programName: "KaushalSetu — Skill Development Mission",
+    programName: "WorkSync — Skill Development Mission",
     districts: ["Nashik", "Nagpur", "Pune"],
     reasonCodes: REASON_CODES,
     skillTags: SKILL_TAGS,

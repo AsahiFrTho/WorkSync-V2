@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   GraduationCap,
@@ -44,6 +44,7 @@ import {
   districts,
   courses,
   coursePerformance,
+  providerPerformance,
   outcomeFunnel,
   employerVerifications,
   aiInsights,
@@ -136,6 +137,38 @@ export default function AnalyticsPage() {
 
   const maxFunnel = outcomeFunnel[0].value
   const netYield = Math.round((outcomeFunnel[outcomeFunnel.length - 1].value / maxFunnel) * 100)
+
+  // Dynamically filter benchmarks based on the Diagnostic Scope Filter
+  const filteredCourseRows = useMemo(() => {
+    const all = coursePerformance.map((c) => ({
+      name: c.course,
+      total: c.trainees,
+      placementRate: c.employmentRate,
+      verifiedRate: c.employmentRate,
+      wageGrowth: 0,
+      completeness: 0,
+    }))
+    if (course === 'All Courses' || course === 'all') return all
+    const matched = all.filter((r) => r.name.toLowerCase().includes(course.toLowerCase()))
+    return matched.length ? matched : all
+  }, [course])
+
+  const filteredProviderRows = useMemo(() => {
+    const all = providerPerformance.map((p, i) => ({
+      provider: { id: `mock-${i}`, name: p.provider, district: 'Pune', status: 'active' },
+      learners: p.trainees,
+      placementRate: p.placementRate,
+      verifiedRate: 0,
+      retentionRate: 0,
+      wageGrowth: 0,
+      completeness: 0,
+      composite: Math.round(p.rating * 20),
+      badge: p.rating >= 4.3 ? 'Strong' : p.rating >= 4 ? 'Improving' : 'Needs attention',
+    }))
+    if (district === 'All Districts' || district === 'all') return all
+    const matched = all.filter((r) => r.provider.name.toLowerCase().includes(district.toLowerCase()))
+    return matched.length ? matched : all
+  }, [district])
 
   return (
     <AppShell>
@@ -489,8 +522,8 @@ export default function AnalyticsPage() {
         {/* 8. COURSE & PROVIDER PERFORMANCE BENCHMARKS                               */}
         {/* ========================================================================= */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <CourseTable />
-          <ProviderTable />
+          <CourseTable rows={filteredCourseRows} />
+          <ProviderTable rows={filteredProviderRows} />
         </section>
 
         {/* ========================================================================= */}

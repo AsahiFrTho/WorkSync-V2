@@ -219,31 +219,29 @@ export default function DashboardPage() {
                   <div
                     key={stage.stage}
                     className={cn(
-                      'relative flex flex-col justify-between rounded-lg border p-3.5 transition-all',
+                      'relative flex flex-col justify-between rounded-lg border p-3.5 transition-all bg-card/80',
                       isLast
-                        ? 'border-success/30 bg-success/10 shadow-2xs'
-                        : idx >= 3
-                        ? 'border-primary/30 bg-primary/10'
-                        : 'border-border bg-muted/20'
+                        ? 'border-primary/40 bg-primary/5 shadow-2xs'
+                        : 'border-border'
                     )}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                         Stage 0{idx + 1}
                       </span>
                       <span
                         className={cn(
-                          'rounded px-1.5 py-0.5 text-[10px] font-bold',
-                          isLast ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground'
+                          'rounded px-1.5 py-0.5 text-[10px] font-semibold border',
+                          isLast ? 'border-success/30 bg-success/10 text-success' : 'border-border bg-muted text-muted-foreground'
                         )}
                       >
                         {stagePct}%
                       </span>
                     </div>
                     <div className="mt-2">
-                      <p className="text-xs font-bold text-foreground truncate">{stage.stage}</p>
-                      <p className="text-lg font-black text-foreground tabular-nums mt-0.5">{compact(stage.value)}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground">{stage.value.toLocaleString('en-IN')} candidates</p>
+                      <p className="text-xs font-semibold text-foreground truncate">{stage.stage}</p>
+                      <p className="text-lg font-bold text-foreground tabular-nums mt-0.5">{compact(stage.value)}</p>
+                      <p className="text-[11px] font-normal text-muted-foreground">{stage.value.toLocaleString('en-IN')} candidates</p>
                     </div>
                   </div>
                 )

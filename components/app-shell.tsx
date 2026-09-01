@@ -358,14 +358,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full bg-background lg:h-screen lg:min-h-0 lg:overflow-hidden font-sans">
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col justify-between border-r border-border bg-sidebar lg:h-full lg:min-h-0 lg:overflow-y-auto">
-        <div className="flex flex-col gap-6 p-5">
+      <aside className="hidden lg:flex w-[270px] shrink-0 flex-col justify-between border-r border-border bg-sidebar lg:h-full lg:min-h-0 lg:overflow-y-auto">
+        <div className="flex flex-col gap-5 p-4">
           <Brand />
 
           {navSections.map((section, sIdx) => (
             <div key={section.title} className="flex flex-col gap-1.5">
               {sIdx > 0 && <div className="mb-2 h-px w-full bg-border" />}
-              <div className="flex items-center justify-between px-2.5">
+              <div className="flex items-center justify-between px-2">
                 <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
                   {section.title}
                 </p>
@@ -386,13 +386,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       href={item.href}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'group flex items-start justify-between rounded-lg px-3 py-2.5 text-xs transition-all duration-200 ease-in-out',
+                        'group flex items-start justify-between rounded-lg px-2.5 py-2 text-xs transition-all duration-200 ease-in-out',
                         active
                           ? 'border-l-2 border-primary bg-primary/10 text-foreground font-medium'
                           : 'border-l-2 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
                       )}
                     >
-                      <div className="flex items-start gap-2.5 min-w-0">
+                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
                         {Icon && (
                           <Icon
                             className={cn(
@@ -402,8 +402,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             aria-hidden="true"
                           />
                         )}
-                        <span className="flex flex-col leading-tight truncate">
-                          <span className="text-xs tracking-tight">{item.label}</span>
+                        <span className="flex flex-col leading-tight min-w-0">
+                          <span className="text-xs tracking-tight font-medium text-foreground whitespace-nowrap">{item.label}</span>
                           <span className="text-[10px] font-normal text-muted-foreground truncate">
                             {item.hint}
                           </span>
