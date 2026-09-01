@@ -86,6 +86,10 @@ export default function SkillGapsPage() {
     district: 'all',
   })
 
+  // Selected stakeholder perspective lens & beginner guide state
+  const [perspective, setPerspective] = useState<'government' | 'provider' | 'employer' | 'trainee'>('government')
+  const [guideOpen, setGuideOpen] = useState(false)
+
   // Selected skill for interactive intervention simulator & action plan
   const [selectedSimSkill, setSelectedSimSkill] = useState<string>('CNC Operation')
   const [selectedActionPlanSkill, setSelectedActionPlanSkill] = useState<string>('CNC Operation')
@@ -249,6 +253,213 @@ export default function SkillGapsPage() {
             setFilters={setFilters}
             show={['provider', 'course', 'district']}
           />
+
+          {/* ========================================================================= */}
+          {/* STAKEHOLDER PERSPECTIVE LENS SWITCHER                                    */}
+          {/* ========================================================================= */}
+          <Card className="border border-border bg-card shadow-xs rounded-xl overflow-hidden">
+            <CardHeader className="border-b border-border bg-muted/20 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Compass className="size-4 text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                    Stakeholder Intelligence Lens
+                  </span>
+                  <Badge variant="outline" className="text-[10px] border-border text-muted-foreground font-medium">
+                    Select Perspective
+                  </Badge>
+                </div>
+
+                {/* 8-Question Beginner Guide Toggle */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setGuideOpen(!guideOpen)}
+                  className="text-xs h-7 gap-1.5 border-border"
+                >
+                  <HelpCircle className="size-3.5 text-primary" />
+                  <span>{guideOpen ? 'Hide Beginner Guide' : 'How Skill Gaps Work (8-Point Guide)'}</span>
+                </Button>
+              </div>
+
+              {/* Perspective Selection Tabs */}
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                {[
+                  { id: 'government', label: '🏛️ Government / Policy Lens' },
+                  { id: 'provider', label: '🎓 Training Provider Lens' },
+                  { id: 'employer', label: '🏢 Employer / Hiring Lens' },
+                  { id: 'trainee', label: '👤 Trainee / Career Lens' },
+                ].map((tab) => {
+                  const active = perspective === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setPerspective(tab.id as any)}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 border cursor-pointer',
+                        active
+                          ? 'border-primary/40 bg-primary/10 text-primary shadow-2xs'
+                          : 'border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                      )}
+                    >
+                      <span>{tab.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-4 sm:p-5">
+              {perspective === 'government' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wide">
+                      <Building2 className="size-3.5" />
+                      <span>Government Strategic Policy Takeaway</span>
+                    </div>
+                    <p className="text-foreground text-sm font-semibold">
+                      Statewide data confirms an 18.4 percentage point placement penalty linked to unaddressed competency deficits in 4 modern trades.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed text-xs">
+                      <strong>Policy Action:</strong> Allocate state modernization funding to ITI workshop equipment and bridge curricula across Pune, Nashik, and Chhatrapati Sambhajinagar to recover an estimated +9.2 pp statewide placement conversion.
+                    </p>
+                  </div>
+                  <div className="flex flex-col justify-center rounded-lg border border-border bg-muted/30 p-3.5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Expected State ROI</span>
+                    <span className="text-2xl font-black text-foreground tabular-nums">+9.2 pp</span>
+                    <span className="text-[11px] text-muted-foreground">Potential statewide placement recovery</span>
+                  </div>
+                </div>
+              )}
+
+              {perspective === 'provider' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wide">
+                      <Compass className="size-3.5" />
+                      <span>Training Provider Curriculum Action Plan</span>
+                    </div>
+                    <p className="text-foreground text-sm font-semibold">
+                      Trainees certified in CNC Lathe and Solar PV trades lack 40–60 hours of required shop-floor practical tooling tested during hiring.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed text-xs">
+                      <strong>Curriculum Action:</strong> Embed the approved 45-hour "CNC Lathe & Offset Programming" bridge module during Weeks 18–24 of batch training to close the 54 pp employer readiness deficit.
+                    </p>
+                  </div>
+                  <div className="flex flex-col justify-center rounded-lg border border-border bg-muted/30 p-3.5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Deficit Mitigated</span>
+                    <span className="text-2xl font-black text-foreground tabular-nums">54 pp</span>
+                    <span className="text-[11px] text-muted-foreground">Competency gap closed in CNC trade</span>
+                  </div>
+                </div>
+              )}
+
+              {perspective === 'employer' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wide">
+                      <Briefcase className="size-3.5" />
+                      <span>Employer Workforce & Talent Sourcing Match</span>
+                    </div>
+                    <p className="text-foreground text-sm font-semibold">
+                      2,840 candidates in Maharashtra's active cohort match core trade requirements but require brief finishing apprenticeships.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed text-xs">
+                      <strong>Employer Action:</strong> Partner with MSSDS to host 2-week pre-joining finishing workshops to eliminate shop-floor onboarding lag and secure pre-screened technical talent.
+                    </p>
+                  </div>
+                  <div className="flex flex-col justify-center rounded-lg border border-border bg-muted/30 p-3.5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Candidate Pipeline</span>
+                    <span className="text-2xl font-black text-foreground tabular-nums">2,840</span>
+                    <span className="text-[11px] text-muted-foreground">Pre-qualified candidates available</span>
+                  </div>
+                </div>
+              )}
+
+              {perspective === 'trainee' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wide">
+                      <Users className="size-3.5" />
+                      <span>Trainee Career Pathway & Wage Growth</span>
+                    </div>
+                    <p className="text-foreground text-sm font-semibold">
+                      Completing the NSQF-aligned CNC / Solar PV micro-credential unlocks higher starting wages and superior placement probability.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed text-xs">
+                      <strong>Trainee Action:</strong> Enroll in the free 40-hour recommended Bridge Module to qualify for high-tier industrial maintenance roles in Pune and Chakan manufacturing clusters.
+                    </p>
+                  </div>
+                  <div className="flex flex-col justify-center rounded-lg border border-border bg-muted/30 p-3.5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Wage Premium</span>
+                    <span className="text-2xl font-black text-success tabular-nums">+₹2,300/mo</span>
+                    <span className="text-[11px] text-muted-foreground">Average monthly salary increase</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 8-Question Beginner Guide Expandable Panel */}
+              {guideOpen && (
+                <div className="mt-4 border-t border-border pt-4 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wide">
+                    <BookOpen className="size-3.5" />
+                    <span>Beginner's Guide: Understanding Skill Gap Intelligence in 8 Steps</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">1. What is the skill gap?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        The difference between technical competencies employers need on the job vs. what candidates are taught in vocational courses.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">2. Why does it matter?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Candidates pass exams and earn certificates, but 34% fail placement interviews because they lack specific hands-on tools.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">3. Who has the gap?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Identified across candidates in 4 major trades (Electrician, CNC Machining, Solar PV, Digital Tools) in Maharashtra hubs.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">4. Which skills are missing?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Top reported deficits: CNC Operation (+54 pp), Solar PV Integration (+44 pp), PLC Automation (+38 pp), EV BMS (+32 pp).
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">5. How large is the gap?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Calculated as Employer Demand % minus Training Coverage %. Gaps over 35 pp create an observed -18.4 pp placement penalty.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">6. Why does the gap exist?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Rapid factory modernization in industrial corridors (Pune, Chakan) outpaced multi-year textbook syllabus revision cycles.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">7. What should be done?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Deploy 40–60 hour modular Bridge Modules and shared industry workshop access rather than waiting years to rewrite degree courses.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <span className="font-bold text-foreground block">8. Who takes action?</span>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Government funds bridge labs, Providers embed modules, Employers offer apprenticeships, and Trainees complete micro-credentials.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* ========================================================================= */}
           {/* 1. EXECUTIVE DEFICIT KPI RIBBON                                          */}

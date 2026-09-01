@@ -71,14 +71,14 @@ export const ROLES: Record<Role, RoleInfo> = {
 export const SECTION_ACCESS: { prefix: string; roles: Role[] }[] = [
   { prefix: "/dashboard", roles: ["admin"] },
   { prefix: "/analytics", roles: ["admin", "provider"] },
-  { prefix: "/employer", roles: ["admin", "employer"] },
-  { prefix: "/trainee", roles: ["admin", "trainee"] },
+  { prefix: "/employer", roles: ["employer"] },
+  { prefix: "/trainee", roles: ["trainee"] },
   { prefix: "/insights", roles: ["admin", "provider"] },
   { prefix: "/skillgaps", roles: ["admin", "provider"] },
+  { prefix: "/scorecard", roles: ["admin", "provider"] },
   { prefix: "/learners", roles: ["admin"] },
   { prefix: "/followups", roles: ["admin"] },
   { prefix: "/verification", roles: ["admin"] },
-  { prefix: "/scorecard", roles: ["admin"] },
   { prefix: "/dataquality", roles: ["admin"] },
   { prefix: "/settings", roles: ["admin"] },
 ];

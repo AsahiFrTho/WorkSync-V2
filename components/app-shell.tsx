@@ -29,98 +29,186 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { GlobalSearch } from '@/components/global-search'
 import { ROLES, sectionsForRole, type Role } from '@/lib/auth/roles'
 
-const stakeholderPortals = [
-  {
-    label: 'Government / Admin',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    hint: 'State-wide macro metrics',
-    roleBadge: 'Admin',
-  },
-  {
-    label: 'Training Provider',
-    href: '/analytics',
-    icon: LineChart,
-    hint: 'Skill gaps & performance',
-    roleBadge: 'Provider',
-  },
-  {
-    label: 'Employer Portal',
-    href: '/employer',
-    icon: Building2,
-    hint: 'Join & wage verification',
-    roleBadge: 'Employer',
-  },
-  {
-    label: 'Trainee Passport',
-    href: '/trainee',
-    icon: UserCheck,
-    hint: 'Verifiable outcome record',
-    roleBadge: 'Trainee',
-  },
-]
+interface NavItem {
+  label: string
+  href: string
+  icon: typeof LayoutDashboard
+  hint: string
+  roleBadge: string
+}
 
-const intelligenceTools = [
-  {
-    label: 'Skill Gap Intelligence',
-    href: '/skillgaps',
-    icon: Puzzle,
-    hint: 'Competency deficit engine',
-    roleBadge: 'Engine',
-  },
-  {
-    label: 'AI Insights & Policy',
-    href: '/insights',
-    icon: Sparkles,
-    hint: 'Automated policy signals',
-    roleBadge: 'Policy AI',
-  },
-]
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
 
-const operationsTools = [
-  {
-    label: 'Learners',
-    href: '/learners',
-    icon: Users,
-    hint: 'Registry & consent records',
-    roleBadge: 'Registry',
-  },
-  {
-    label: 'Follow-ups',
-    href: '/followups',
-    icon: PhoneCall,
-    hint: 'Contact queue & outcomes',
-    roleBadge: 'Field',
-  },
-  {
-    label: 'Employer Verification',
-    href: '/verification',
-    icon: BadgeCheck,
-    hint: 'Approve / reject / evidence',
-    roleBadge: 'Verifier',
-  },
-  {
-    label: 'Provider Scorecard',
-    href: '/scorecard',
-    icon: Building2,
-    hint: 'Provider accountability',
-    roleBadge: 'Pulse',
-  },
-  {
-    label: 'Data Quality',
-    href: '/dataquality',
-    icon: ClipboardCheck,
-    hint: 'Audit & completeness',
-    roleBadge: 'Audit',
-  },
-  {
-    label: 'Settings',
-    href: '/settings',
-    icon: SettingsIcon,
-    hint: 'Programme configuration',
-    roleBadge: 'Admin',
-  },
-]
+function getNavigationForRole(role: Role): NavSection[] {
+  if (role === 'provider') {
+    return [
+      {
+        title: 'Provider Performance',
+        items: [
+          {
+            label: 'Training & Placement',
+            href: '/analytics',
+            icon: LineChart,
+            hint: 'Cohort yield & outcomes',
+            roleBadge: 'Provider',
+          },
+          {
+            label: 'Institutional Scorecard',
+            href: '/scorecard',
+            icon: Building2,
+            hint: 'Accountability & ranking',
+            roleBadge: 'Scorecard',
+          },
+        ],
+      },
+      {
+        title: 'Curriculum & Intelligence',
+        items: [
+          {
+            label: 'Skill Gap Intelligence',
+            href: '/skillgaps',
+            icon: Puzzle,
+            hint: 'Deficit engine & simulator',
+            roleBadge: 'Engine',
+          },
+          {
+            label: 'AI Course Improvements',
+            href: '/insights',
+            icon: Sparkles,
+            hint: 'Actionable trade signals',
+            roleBadge: 'Course AI',
+          },
+        ],
+      },
+    ]
+  }
+
+  if (role === 'employer') {
+    return [
+      {
+        title: 'Employer Portal',
+        items: [
+          {
+            label: 'Talent & Verification',
+            href: '/employer',
+            icon: Building2,
+            hint: 'Joining & wage verification',
+            roleBadge: 'Employer',
+          },
+        ],
+      },
+    ]
+  }
+
+  if (role === 'trainee') {
+    return [
+      {
+        title: 'Trainee Portal',
+        items: [
+          {
+            label: 'My Outcome Passport',
+            href: '/trainee',
+            icon: UserCheck,
+            hint: 'Verifiable credentials & wage history',
+            roleBadge: 'Passport',
+          },
+        ],
+      },
+    ]
+  }
+
+  // Default: Government / Administrator
+  return [
+    {
+      title: 'Executive Oversight',
+      items: [
+        {
+          label: 'State Command Center',
+          href: '/dashboard',
+          icon: LayoutDashboard,
+          hint: 'Statewide macro metrics',
+          roleBadge: 'State',
+        },
+        {
+          label: 'Statewide Analytics',
+          href: '/analytics',
+          icon: LineChart,
+          hint: 'Provider & trade analytics',
+          roleBadge: 'Analytics',
+        },
+      ],
+    },
+    {
+      title: 'Intelligence & Policy',
+      items: [
+        {
+          label: 'Skill Gap Intelligence',
+          href: '/skillgaps',
+          icon: Puzzle,
+          hint: 'State deficit & bridge planning',
+          roleBadge: 'Engine',
+        },
+        {
+          label: 'AI Policy Insights',
+          href: '/insights',
+          icon: Sparkles,
+          hint: 'Automated policy signals',
+          roleBadge: 'Policy AI',
+        },
+        {
+          label: 'Provider Scorecards',
+          href: '/scorecard',
+          icon: Building2,
+          hint: 'VTP ranking & accountability',
+          roleBadge: 'Scorecard',
+        },
+      ],
+    },
+    {
+      title: 'Governance & Operations',
+      items: [
+        {
+          label: 'Learner Registry',
+          href: '/learners',
+          icon: Users,
+          hint: 'Consent & outcome records',
+          roleBadge: 'Registry',
+        },
+        {
+          label: 'Verification & Compliance',
+          href: '/verification',
+          icon: BadgeCheck,
+          hint: 'Statewide audit queue',
+          roleBadge: 'Audit',
+        },
+        {
+          label: 'Follow-up Operations',
+          href: '/followups',
+          icon: PhoneCall,
+          hint: 'Longitudinal contact queue',
+          roleBadge: 'Field',
+        },
+        {
+          label: 'Data Quality Audit',
+          href: '/dataquality',
+          icon: ClipboardCheck,
+          hint: 'Hygiene & completeness check',
+          roleBadge: 'Hygiene',
+        },
+        {
+          label: 'Programme Settings',
+          href: '/settings',
+          icon: SettingsIcon,
+          hint: 'Policy & threshold config',
+          roleBadge: 'Config',
+        },
+      ],
+    },
+  ]
+}
 
 // Icons are a UI-only concern, so they're mapped here rather than inside
 // lib/auth/roles.ts -- that file is imported by proxy.ts (server) too, and
@@ -262,12 +350,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const role: Role = session?.role || 'admin'
   const roleInfo = ROLES[role]
   const RoleIcon = ROLE_ICONS[role]
-  const allowedSections = sectionsForRole(role)
-  const canSee = (href: string) => allowedSections.some((prefix) => href.startsWith(prefix))
-
-  const visiblePortals = stakeholderPortals.filter((item) => canSee(item.href))
-  const visibleIntelligence = intelligenceTools.filter((item) => canSee(item.href))
-  const visibleOperations = operationsTools.filter((item) => canSee(item.href))
+  const navSections = getNavigationForRole(role)
+  const allNavItems = navSections.flatMap((s) => s.items)
 
   const displayName = loading ? '…' : session?.name || roleInfo.label
   const displayOrg = loading ? 'Verifying session…' : session?.email || roleInfo.organization
@@ -278,16 +362,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col gap-6 p-5">
           <Brand />
 
-          {visiblePortals.length > 0 && (
-            <div className="flex flex-col gap-1.5">
+          {navSections.map((section, sIdx) => (
+            <div key={section.title} className="flex flex-col gap-1.5">
+              {sIdx > 0 && <div className="mb-2 h-px w-full bg-border" />}
               <div className="flex items-center justify-between px-2.5">
                 <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-                  Stakeholder Portals
+                  {section.title}
                 </p>
               </div>
-              <nav className="flex flex-col gap-0.5" aria-label="Stakeholder portals">
-                {visiblePortals.map((item) => {
-                  const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              <nav className="flex flex-col gap-0.5" aria-label={section.title}>
+                {section.items.map((item) => {
+                  const active =
+                    pathname === item.href ||
+                    (item.href !== '/dashboard' &&
+                      item.href !== '/analytics' &&
+                      item.href !== '/employer' &&
+                      item.href !== '/trainee' &&
+                      pathname.startsWith(item.href))
                   const Icon = item.icon
                   return (
                     <Link
@@ -333,124 +424,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 })}
               </nav>
             </div>
-          )}
-
-          {visibleIntelligence.length > 0 && (
-            <>
-              <div className="h-px w-full bg-border" />
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between px-2.5">
-                  <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-                    Intelligence & Signals
-                  </p>
-                </div>
-                <nav className="flex flex-col gap-0.5" aria-label="Intelligence tools">
-                  {visibleIntelligence.map((item) => {
-                    const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-                    const Icon = item.icon
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        aria-current={active ? 'page' : undefined}
-                        className={cn(
-                          'group flex items-start justify-between rounded-lg px-3 py-2.5 text-xs transition-all duration-200 ease-in-out',
-                          active
-                            ? 'border-l-2 border-primary bg-primary/10 text-foreground font-medium'
-                            : 'border-l-2 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
-                        )}
-                      >
-                        <div className="flex items-start gap-2.5 min-w-0">
-                          {Icon && (
-                            <Icon
-                              className={cn(
-                                'mt-0.5 size-4 shrink-0 transition-colors duration-200 ease-in-out',
-                                active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
-                              )}
-                              aria-hidden="true"
-                            />
-                          )}
-                          <span className="flex flex-col leading-tight truncate">
-                            <span className="text-xs tracking-tight">{item.label}</span>
-                            <span className="text-[10px] font-normal text-muted-foreground truncate">
-                              {item.hint}
-                            </span>
-                          </span>
-                        </div>
-                        <span
-                          className={cn(
-                            'ml-1.5 mt-0.5 rounded border px-1.5 py-0.2 text-[9px] tracking-wide shrink-0 font-medium',
-                            active
-                              ? 'border-primary/25 bg-primary/10 text-primary'
-                              : 'border-border bg-muted text-muted-foreground',
-                          )}
-                        >
-                          {item.roleBadge}
-                        </span>
-                      </Link>
-                    )
-                  })}
-                </nav>
-              </div>
-            </>
-          )}
-
-          {visibleOperations.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between px-2.5">
-                <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
-                  Programme Operations
-                </p>
-              </div>
-              <nav className="flex flex-col gap-0.5" aria-label="Programme operations">
-                {visibleOperations.map((item) => {
-                  const active = pathname === item.href || pathname.startsWith(item.href + '/')
-                  const Icon = item.icon
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'group flex items-start justify-between rounded-lg px-3 py-2.5 text-xs transition-all duration-200 ease-in-out',
-                        active
-                          ? 'border-l-2 border-primary bg-primary/10 text-foreground font-medium'
-                          : 'border-l-2 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
-                      )}
-                    >
-                      <div className="flex items-start gap-2.5 min-w-0">
-                        {Icon && (
-                          <Icon
-                            className={cn(
-                              'mt-0.5 size-4 shrink-0 transition-colors duration-200 ease-in-out',
-                              active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
-                            )}
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="flex flex-col leading-tight truncate">
-                          <span className="text-xs tracking-tight">{item.label}</span>
-                          <span className="text-[10px] font-normal text-muted-foreground truncate">
-                            {item.hint}
-                          </span>
-                        </span>
-                      </div>
-                      <span
-                        className={cn(
-                          'ml-1.5 mt-0.5 rounded border px-1.5 py-0.5 text-[9px] tracking-wide shrink-0 font-medium',
-                          active
-                            ? 'border-primary/25 bg-primary/10 text-primary'
-                            : 'border-border bg-muted text-muted-foreground',
-                        )}
-                      >
-                        {item.roleBadge}
-                      </span>
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
-          )}
+          ))}
         </div>
 
         <div className="border-t border-border p-4 space-y-2.5">
@@ -458,7 +432,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between gap-1 mb-1.5">
               <span className="flex items-center gap-1.5 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
                 <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
-                Active Session
+                Active Stakeholder
               </span>
               <span className="rounded px-1.5 py-0.2 text-[9px] font-medium border border-primary/25 bg-primary/10 text-primary">
                 {roleInfo.shortLabel}
@@ -525,8 +499,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="flex gap-1.5 overflow-x-auto border-t border-border px-3 py-2 bg-card"
             aria-label="Primary mobile"
           >
-            {[...visiblePortals, ...visibleIntelligence, ...visibleOperations].map((item) => {
-              const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+            {allNavItems.map((item) => {
+              const active =
+                pathname === item.href ||
+                (item.href !== '/dashboard' &&
+                  item.href !== '/analytics' &&
+                  item.href !== '/employer' &&
+                  item.href !== '/trainee' &&
+                  pathname.startsWith(item.href))
               const Icon = item.icon
               return (
                 <Link

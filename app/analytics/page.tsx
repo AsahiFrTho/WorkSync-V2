@@ -63,7 +63,7 @@ function FilterSelect({
 }) {
   return (
     <label className="flex flex-col gap-1 text-xs">
-      <span className="font-bold uppercase tracking-wider text-slate-600">{label}</span>
+      <span className="font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -99,7 +99,7 @@ function TrainingCoverageCard({ courseFilter }: { courseFilter: string }) {
               Active vocational candidate capacity mapped to trade demand
             </CardDescription>
           </div>
-          <Badge variant="default" className="font-bold text-[10px]">
+          <Badge variant="outline" className="font-medium text-[10px] border-border">
             {view.length} Active Tracks
           </Badge>
         </div>
@@ -108,11 +108,11 @@ function TrainingCoverageCard({ courseFilter }: { courseFilter: string }) {
         {view.map((c) => (
           <div key={c.course} className="flex flex-col gap-1.5 rounded-lg border border-border bg-muted/20 p-2.5">
             <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="flex items-center gap-2 font-bold text-foreground">
+              <span className="flex items-center gap-2 font-semibold text-foreground">
                 {c.course}
                 <Badge
                   variant={c.demand === 'High' ? 'destructive' : c.demand === 'Medium' ? 'warning' : 'neutral'}
-                  className="font-bold text-[10px] px-1.5 py-0.2"
+                  className="font-medium text-[10px] px-1.5 py-0.2"
                 >
                   {c.demand} Demand
                 </Badge>
@@ -140,23 +140,44 @@ export default function AnalyticsPage() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="TRAINING PROVIDER • PERFORMANCE & OUTCOMES"
+        eyebrow="MSSDS • Training Performance & Outcomes"
         title="Training Performance & Placement Command Center"
-        description="Monitor trainee progression from enrolment and certification through placement, employer verification, retention, and wage outcomes across your training programmes."
+        description="Monitor trainee progression from enrolment and certification through placement, employer verification, retention, and wage outcomes across training programmes."
       />
 
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        
+        {/* ========================================================================= */}
+        {/* BEGINNER-FRIENDLY EXPLAINER BANNER: "WHAT IS THIS COMMAND CENTER?"         */}
+        {/* ========================================================================= */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-3.5 text-xs text-muted-foreground shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <HelpCircle className="size-4" />
+            </div>
+            <div>
+              <span className="font-semibold text-foreground">What am I looking at? </span>
+              <span>
+                This Command Center tracks the <strong>entire trainee journey</strong> — from batch intake and exam certification through employer-verified employment and 6-month on-job retention.
+              </span>
+            </div>
+          </div>
+          <span className="shrink-0 rounded-md border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+            LIVE ANALYTICS
+          </span>
+        </div>
+
         {/* ========================================================================= */}
         {/* 1. TOP KPI RIBBON (4 Distinct Semantic Operational Metrics)               */}
         {/* ========================================================================= */}
         <section aria-label="Key Performance Indicators" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Trainees Enrolled (Blue / Government Navy) */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border border-l-2 border-l-primary bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40">
+          {/* Card 1: Trainees Enrolled */}
+          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Trainees Enrolled
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-2xs">
+              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
                 <Users className="size-4.5" />
               </div>
             </div>
@@ -165,24 +186,24 @@ export default function AnalyticsPage() {
                 <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
                   {compact(summary.totalTrainees)}
                 </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold text-primary">
+                <span className="inline-flex items-center gap-0.5 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
                   <TrendingUp className="size-3 text-primary stroke-[2.5]" />
                   Active Cohort
                 </span>
               </div>
               <p className="mt-1 text-xs font-medium text-muted-foreground">
-                {summary.totalTrainees.toLocaleString('en-IN')} across 96 affiliated centres
+                {summary.totalTrainees.toLocaleString('en-IN')} across affiliated vocational centres
               </p>
             </div>
           </div>
 
-          {/* Card 2: Certification Rate (Purple / Assessment Yield) */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border border-l-2 border-l-purple-500 bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40">
+          {/* Card 2: Certification Rate */}
+          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Certification Rate
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-500/10 text-purple-400 shadow-2xs">
+              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
                 <Award className="size-4.5" />
               </div>
             </div>
@@ -191,7 +212,7 @@ export default function AnalyticsPage() {
                 <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
                   {summary.certificationRate}%
                 </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-purple-500/20 bg-purple-500/10 px-1.5 py-0.5 text-[11px] font-bold text-purple-400">
+                <span className="inline-flex items-center gap-0.5 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
                   NSQF L4
                 </span>
               </div>
@@ -201,13 +222,13 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Card 3: Verified Placement (Emerald / Confirmed Outcomes) */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border border-l-2 border-l-success bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40">
+          {/* Card 3: Verified Placement */}
+          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Verified Placement
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-success/20 bg-success/10 text-success shadow-2xs">
+              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
                 <Briefcase className="size-4.5" />
               </div>
             </div>
@@ -216,7 +237,7 @@ export default function AnalyticsPage() {
                 <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
                   {summary.employmentRate}%
                 </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-success/20 bg-success/10 px-1.5 py-0.5 text-[11px] font-bold text-success">
+                <span className="inline-flex items-center gap-0.5 rounded-md border border-success/25 bg-success/10 px-1.5 py-0.5 text-[11px] font-semibold text-success">
                   <TrendingUp className="size-3 text-success stroke-[2.5]" />
                   +3.1 pts
                 </span>
@@ -227,13 +248,13 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Card 4: 6-Month Retention (Amber / Longitudinal Stability) */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border border-l-2 border-l-warning bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40">
+          {/* Card 4: 6-Month Retention */}
+          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 6-Month Retention
               </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-warning/20 bg-warning/10 text-warning shadow-2xs">
+              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
                 <Repeat className="size-4.5" />
               </div>
             </div>
@@ -242,7 +263,7 @@ export default function AnalyticsPage() {
                 <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
                   {summary.retentionRate}%
                 </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-warning/20 bg-warning/10 px-1.5 py-0.5 text-[11px] font-bold text-warning">
+                <span className="inline-flex items-center gap-0.5 rounded-md border border-warning/25 bg-warning/10 px-1.5 py-0.5 text-[11px] font-semibold text-warning">
                   +1.4 pts
                 </span>
               </div>
@@ -261,20 +282,19 @@ export default function AnalyticsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground uppercase tracking-wide">
-                  Provider Trainee Progression Pipeline
+                  Trainee Longitudinal Progression Pipeline
                 </span>
-                <Badge variant="default" className="text-[10px] font-bold">
-                  MSSDS Verified
+                <Badge variant="outline" className="text-[10px] font-medium border-border">
+                  MSSDS Tracked
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Conversion and drop-off audits from batch enrolment through 6-month on-job retention
+                Conversion audits from initial batch enrolment through 6-month on-job retention
               </p>
             </div>
 
-            <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-1 text-xs font-bold text-success">
-              <TrendingUp className="size-4 text-success" />
-              <span>Net Pipeline Yield: {netYield}%</span>
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
+              <span>Net Pipeline Yield: <strong className="text-primary">{netYield}%</strong></span>
             </div>
           </div>
 
@@ -287,24 +307,22 @@ export default function AnalyticsPage() {
                 <div
                   key={stage.stage}
                   className={cn(
-                    'relative flex flex-col justify-between rounded-lg border p-3.5 transition-all',
+                    'relative flex flex-col justify-between rounded-lg border p-3.5 transition-all bg-card/80',
                     isLast
-                      ? 'border-success/30 bg-success/10 shadow-2xs'
-                      : idx >= 3
-                      ? 'border-primary/30 bg-primary/10'
-                      : 'border-border bg-muted/20'
+                      ? 'border-primary/40 bg-primary/5 shadow-2xs'
+                      : 'border-border'
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Stage 0{idx + 1}
                     </span>
                     <span
                       className={cn(
-                        'rounded px-1.5 py-0.5 text-[10px] font-bold',
+                        'rounded px-1.5 py-0.5 text-[10px] font-semibold border',
                         isLast
-                          ? 'bg-success text-success-foreground'
-                          : 'bg-muted text-muted-foreground'
+                          ? 'border-primary/30 bg-primary/10 text-primary'
+                          : 'border-border bg-muted text-muted-foreground'
                       )}
                     >
                       {pct}%
@@ -312,13 +330,13 @@ export default function AnalyticsPage() {
                   </div>
 
                   <div className="mt-2">
-                    <p className="text-xs font-bold text-foreground truncate">
+                    <p className="text-xs font-semibold text-foreground truncate">
                       {stage.stage}
                     </p>
-                    <p className="text-lg font-black text-foreground tabular-nums mt-0.5">
+                    <p className="text-lg font-bold text-foreground tabular-nums mt-0.5">
                       {compact(stage.value)}
                     </p>
-                    <p className="text-[11px] font-medium text-muted-foreground">
+                    <p className="text-[11px] font-normal text-muted-foreground">
                       {stage.value.toLocaleString('en-IN')} candidates
                     </p>
                   </div>
@@ -329,30 +347,38 @@ export default function AnalyticsPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* 3. DIAGNOSTIC FILTERS BAR                                                 */}
+        {/* 3. DIAGNOSTIC PERFORMANCE SCOPE FILTER                                    */}
         {/* ========================================================================= */}
         <Card className="border border-border bg-card shadow-xs rounded-xl">
-          <CardContent className="flex flex-wrap items-end gap-4 p-4">
-            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-              <Filter className="size-4 text-primary" aria-hidden="true" />
-              <span>Diagnostic Filters</span>
+          <CardContent className="flex flex-col gap-3 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <Filter className="size-4 text-primary" aria-hidden="true" />
+                <span className="text-sm font-bold text-foreground">Diagnostic Scope Filter</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Isolate training capacity, wage growth, and employer demand across specific districts and trades to diagnose placement variances.
+              </p>
             </div>
-            <FilterSelect
-              label="District Filter"
-              value={district}
-              options={districts}
-              onChange={setDistrict}
-            />
-            <FilterSelect
-              label="Vocational Trade / Course"
-              value={course}
-              options={courses}
-              onChange={setCourse}
-            />
-            <div className="ml-auto flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <span>Active Scope:</span>
-              <Badge variant="default">{district}</Badge>
-              <Badge variant="default">{course}</Badge>
+            
+            <div className="flex flex-wrap items-end gap-4 pt-1">
+              <FilterSelect
+                label="District Scope"
+                value={district}
+                options={districts}
+                onChange={setDistrict}
+              />
+              <FilterSelect
+                label="Vocational Trade"
+                value={course}
+                options={courses}
+                onChange={setCourse}
+              />
+              <div className="ml-auto flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
+                <span>Active Scope:</span>
+                <Badge variant="outline" className="border-border text-foreground font-medium">{district}</Badge>
+                <Badge variant="outline" className="border-border text-foreground font-medium">{course}</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -395,7 +421,7 @@ export default function AnalyticsPage() {
                 <span className="text-sm font-bold text-foreground uppercase tracking-wide">
                   Employer Placement & Verification Roster
                 </span>
-                <Badge variant="success" className="text-[10px] font-bold">
+                <Badge variant="outline" className="text-[10px] font-medium border-border">
                   Live Audit Feed
                 </Badge>
               </div>
@@ -404,13 +430,9 @@ export default function AnalyticsPage() {
               </p>
             </div>
 
-            <Link
-              href="/employer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs font-bold text-foreground shadow-2xs hover:bg-muted transition-colors"
-            >
-              <span>View Employer Command Center</span>
-              <ArrowRight className="size-3.5" />
-            </Link>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {employerVerifications.length} recent verification events
+            </span>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
@@ -424,36 +446,36 @@ export default function AnalyticsPage() {
                   key={item.id}
                   className={cn(
                     'flex flex-col justify-between rounded-xl border p-4 shadow-2xs transition-all bg-card',
-                    isVerified && 'border-border border-l-[4px] border-l-success',
-                    isPending && 'border-border border-l-[4px] border-l-warning',
-                    isFlagged && 'border-border border-l-[4px] border-l-destructive'
+                    isVerified && 'border-border border-l-2 border-l-success',
+                    isPending && 'border-border border-l-2 border-l-warning',
+                    isFlagged && 'border-border border-l-2 border-l-destructive'
                   )}
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-bold text-muted-foreground">
+                      <span className="font-mono text-[10px] font-medium text-muted-foreground">
                         {item.id}
                       </span>
                       <Badge
                         variant={isVerified ? 'success' : isPending ? 'warning' : 'destructive'}
-                        className="text-[10px] font-bold uppercase px-1.5 py-0.2"
+                        className="text-[10px] font-medium uppercase px-1.5 py-0.2"
                       >
                         {item.status}
                       </Badge>
                     </div>
 
-                    <h4 className="mt-2 text-sm font-bold text-foreground">
+                    <h4 className="mt-2 text-sm font-semibold text-foreground">
                       {item.trainee}
                     </h4>
-                    <p className="text-xs font-medium text-muted-foreground">{item.course}</p>
-                    <p className="text-[11px] font-semibold text-muted-foreground/80 mt-0.5">{item.provider}</p>
+                    <p className="text-xs font-normal text-muted-foreground">{item.course}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground/80 mt-0.5">{item.provider}</p>
                   </div>
 
                   <div className="mt-3.5 flex items-center justify-between border-t border-border/60 pt-2 text-xs">
                     <span className="font-bold text-foreground tabular-nums">
                       {inr(item.wage)}/mo
                     </span>
-                    <span className="text-[11px] font-medium text-muted-foreground">
+                    <span className="text-[11px] font-normal text-muted-foreground">
                       Joined {item.joinDate}
                     </span>
                   </div>
@@ -474,10 +496,10 @@ export default function AnalyticsPage() {
         {/* ========================================================================= */}
         {/* 9. PROVIDER INTELLIGENCE & ACTIONABLE POLICY SIGNALS                      */}
         {/* ========================================================================= */}
-        <section aria-label="Provider Intelligence Advisory" className="rounded-xl border border-primary/30 bg-primary/10 p-5 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 pb-3.5">
+        <section aria-label="Provider Intelligence Advisory" className="rounded-xl border border-border bg-card p-5 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-2xs">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-2xs">
                 <Sparkles className="size-4" />
               </span>
               <div>
@@ -492,7 +514,7 @@ export default function AnalyticsPage() {
 
             <Link
               href="/insights"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-2xs hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
             >
               <span>Explore All Insights</span>
               <ArrowRight className="size-3.5" />
@@ -503,23 +525,23 @@ export default function AnalyticsPage() {
             {aiInsights.map((insight) => (
               <div
                 key={insight.id}
-                className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs hover:border-primary/40 hover:shadow-xs transition-all"
+                className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-2xs hover:border-border/80 transition-all"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary uppercase">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary uppercase">
                       <Compass className="size-3 text-primary" />
                       {insight.district}
                     </span>
                     <Badge
                       variant={insight.priority === 'High' ? 'destructive' : 'warning'}
-                      className="text-[10px] font-bold px-1.5 py-0.2"
+                      className="text-[10px] font-medium px-1.5 py-0.2"
                     >
                       {insight.priority} Priority
                     </Badge>
                   </div>
 
-                  <h4 className="mt-2 text-xs font-bold text-foreground leading-snug">
+                  <h4 className="mt-2 text-xs font-semibold text-foreground leading-snug">
                     {insight.title}
                   </h4>
 
@@ -529,13 +551,13 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="mt-3.5 border-t border-border pt-3">
-                  <div className="flex items-start gap-1.5 text-[11px] font-semibold text-foreground">
+                  <div className="flex items-start gap-1.5 text-[11px] font-medium text-foreground">
                     <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
                     <span><strong className="text-foreground">Action:</strong> {insight.action}</span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-muted-foreground">
+                  <div className="mt-2 flex items-center justify-between text-[10px] font-medium text-muted-foreground">
                     <span>Confidence Score</span>
-                    <span className="text-primary font-extrabold">{insight.confidence}% Grounded</span>
+                    <span className="text-primary font-bold">{insight.confidence}% Grounded</span>
                   </div>
                 </div>
               </div>

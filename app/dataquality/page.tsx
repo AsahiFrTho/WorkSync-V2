@@ -86,12 +86,31 @@ export default function DataQualityPage() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Data Hygiene • Audit Trail"
-        title="Data Quality"
-        description="Know what to fix next — incomplete data weakens every outcome number the programme reports. Each issue links straight to the workflow that fixes it."
+        eyebrow="MSSDS • OPERATIONAL DATA HYGIENE & AUDIT"
+        title="Data Quality & Integrity Audit"
+        description="Real-time audit evaluating operational trustworthiness, consent validity, and completeness across learner records, employer verification claims, and longitudinal follow-up logs."
       />
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
+          
+          {/* Conceptual Role Explainer Banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-3.5 text-xs text-muted-foreground shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                <ShieldCheck className="size-4" />
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">Operational Trustworthiness Audit: </span>
+                <span>
+                  Answers: <strong>"Is our operational data complete and trustworthy right now?"</strong> Flags missing phone numbers, unrecorded training outcomes, unconfirmed employer claims, and expired DPDP consents with direct 1-click remediation links.
+                </span>
+              </div>
+            </div>
+            <span className="shrink-0 rounded-md border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              REAL-TIME AUDIT
+            </span>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard
               label="Data completeness score"
