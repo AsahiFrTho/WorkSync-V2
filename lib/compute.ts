@@ -882,8 +882,12 @@ function avgWageGrowthFor(db: ComputeDB, ids: string[]) {
     : 0;
 }
 
-export function providerScorecards(db: ComputeDB) {
-  return providersOf(db).map((p) => {
+export function providerScorecards(db: ComputeDB, filters: Partial<Filters> = {}) {
+  let providers = providersOf(db);
+  if (filters.district && filters.district !== "all") {
+    providers = providers.filter((p) => p.district.toLowerCase().includes(filters.district!.toLowerCase()));
+  }
+  return providers.map((p) => {
     const learners = db.learners.filter((l) => providerOf(db, l.traineeId)?.id === p.id);
     const ids = learners.map((l) => l.traineeId);
     const placedLearners = learners.filter((l) => employmentStatus(db, l.traineeId).key === "placed");

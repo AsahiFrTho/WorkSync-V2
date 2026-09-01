@@ -69,99 +69,21 @@ const methodLabels: Record<string, string> = {
   offer_letter: 'Offer Letter & Joining Audit',
   payslip: 'Monthly Payslip Verification',
   pf_uan: 'EPFO / UAN Confirmation',
+  field_visit: 'Field Verification Cell & Audit',
 }
 
-export default async function TraineePage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ id?: string }>
-}) {
-  const resolvedParams = searchParams ? await searchParams : {}
-  const currentId = (resolvedParams.id || 'KP-0001').trim()
+interface DemoProfileData {
+  trainee: ITrainee
+  employmentRecord: IEmploymentRecord
+  tag: string
+  journeyTag: string
+}
 
-  let trainee: ITrainee | null = null
-  let allTrainees: ITrainee[] = []
-  let employmentRecord: IEmploymentRecord | null = null
-  let dbError: string | null = null
-
-  try {
-    await connectToDatabase()
-
-    allTrainees = (await Trainee.find().sort({ traineeId: 1 }).lean()) as ITrainee[]
-
-    trainee = (await Trainee.findOne({
-      traineeId: currentId,
-    }).lean()) as ITrainee | null
-
-    if (!trainee) {
-      // Create canonical default prototype trainee
-      trainee = {
-        _id: 'default-kp0001' as any,
-        traineeId: 'KP-0001',
-        name: 'Rahul Pawar',
-        phone: '9823012345',
-        email: 'rahul.pawar@example.com',
-        district: 'Pune',
-        course: 'Electrician',
-        status: 'employed',
-        monthlyWage: 16800,
-        trainingProvider: 'Yashaswi Skill Academy, Pune',
-        trainingPeriod: {
-          startDate: new Date('2023-08-01'),
-          endDate: new Date('2024-01-30'),
-          hours: 600,
-        },
-        certificate: {
-          certificateId: 'MSD-2024-08942',
-          issueDate: new Date('2024-02-15'),
-          nsqfLevel: 4,
-          issuer: 'NCVET / MSSDS',
-          grade: 'A',
-        },
-        skills: [
-          'Industrial Wiring',
-          'Control Panel Assembly',
-          'Three-Phase Motor Maintenance',
-          'Electrical Safety Protocols',
-          'PLC Basics',
-        ],
-        createdAt: new Date('2023-08-01'),
-        updatedAt: new Date(),
-      } as unknown as ITrainee
-    }
-
-    if (!employmentRecord) {
-      employmentRecord = {
-        _id: 'default-emp-01' as any,
-        trainee: 'default-kp0001' as any,
-        traineeId: 'KP-0001',
-        employerName: 'Deccan Electricals Pvt. Ltd.',
-        employerContactEmail: 'hr@deccanelectricals.com',
-        jobRole: 'Junior Maintenance Electrician',
-        employmentType: 'wage_employment',
-        district: 'Pune',
-        startDate: new Date('2024-03-01'),
-        isCurrent: true,
-        monthlyWage: 16800,
-        trainingRelevance: 'directly_related',
-        verificationStatus: 'verified',
-        verificationMetadata: {
-          verifiedByMethod: 'employer_portal',
-          verifiedAt: new Date('2024-03-15'),
-          verifiedByRole: 'HR Head',
-          notes: 'Offer letter and bank credit proof verified.',
-        },
-        followUps: [
-          { milestone: '30_day', dueDate: new Date('2024-04-01'), status: 'verified', completedAt: new Date('2024-04-02') },
-          { milestone: '90_day', dueDate: new Date('2024-06-01'), status: 'verified', completedAt: new Date('2024-06-03') },
-          { milestone: '180_day', dueDate: new Date('2024-09-01'), status: 'verified', completedAt: new Date('2024-09-02') },
-          { milestone: '365_day', dueDate: new Date('2025-03-01'), status: 'pending' },
-        ],
-        notes: 'Trainee performing exceptionally well on plant line 3.',
-      } as unknown as IEmploymentRecord
-    }
-  } catch {
-    trainee = {
+const DEMO_PROFILES: Record<string, DemoProfileData> = {
+  'KP-0001': {
+    tag: 'Direct Placement & 180-Day Retention',
+    journeyTag: 'Enrolled → Certified → Direct Placement → 180-Day Verified Retention',
+    trainee: {
       _id: 'default-kp0001' as any,
       traineeId: 'KP-0001',
       name: 'Rahul Pawar',
@@ -193,9 +115,8 @@ export default async function TraineePage({
       ],
       createdAt: new Date('2023-08-01'),
       updatedAt: new Date(),
-    } as unknown as ITrainee
-
-    employmentRecord = {
+    } as unknown as ITrainee,
+    employmentRecord: {
       _id: 'default-emp-01' as any,
       trainee: 'default-kp0001' as any,
       traineeId: 'KP-0001',
@@ -212,17 +133,261 @@ export default async function TraineePage({
       verificationMetadata: {
         verifiedByMethod: 'employer_portal',
         verifiedAt: new Date('2024-03-15'),
-        verifiedByRole: 'HR Head',
-        notes: 'Offer letter and bank credit proof verified.',
+        verifiedByRole: 'HR Head (S. Joshi)',
+        notes: 'Offer letter, joining form, and bank wage credit proof verified.',
       },
       followUps: [
-        { milestone: '30_day', dueDate: new Date('2024-04-01'), status: 'verified', completedAt: new Date('2024-04-02') },
-        { milestone: '90_day', dueDate: new Date('2024-06-01'), status: 'verified', completedAt: new Date('2024-06-03') },
-        { milestone: '180_day', dueDate: new Date('2024-09-01'), status: 'verified', completedAt: new Date('2024-09-02') },
+        { milestone: '30_day', dueDate: new Date('2024-04-01'), status: 'retained', completedAt: new Date('2024-04-02'), currentWage: 16800 },
+        { milestone: '90_day', dueDate: new Date('2024-06-01'), status: 'retained', completedAt: new Date('2024-06-03'), currentWage: 17400 },
+        { milestone: '180_day', dueDate: new Date('2024-09-01'), status: 'retained', completedAt: new Date('2024-09-02'), currentWage: 18500 },
         { milestone: '365_day', dueDate: new Date('2025-03-01'), status: 'pending' },
       ],
-      notes: 'Trainee performing exceptionally well on plant line 3.',
-    } as unknown as IEmploymentRecord
+      notes: 'Trainee performing exceptionally well on industrial plant line 3.',
+    } as unknown as IEmploymentRecord,
+  },
+  'KP-0002': {
+    tag: 'High-Tech Precision & Wage Growth',
+    journeyTag: 'Enrolled → Certified → Placed → CAD/CAM Bridge Uplift → Wage Hike (+39%)',
+    trainee: {
+      _id: 'default-kp0002' as any,
+      traineeId: 'KP-0002',
+      name: 'Priya Sharma',
+      phone: '9822054321',
+      email: 'priya.sharma@example.com',
+      district: 'Nashik',
+      course: 'CNC Machine Operator',
+      status: 'employed',
+      monthlyWage: 19500,
+      trainingProvider: 'Nashik Precision Engineering Academy',
+      trainingPeriod: {
+        startDate: new Date('2023-09-01'),
+        endDate: new Date('2024-02-28'),
+        hours: 600,
+      },
+      certificate: {
+        certificateId: 'MSD-2024-11482',
+        issueDate: new Date('2024-03-10'),
+        nsqfLevel: 4,
+        issuer: 'NCVET / MSSDS',
+        grade: 'A+',
+      },
+      skills: [
+        'CNC Lathe Programming',
+        'G-Code & M-Code Optimization',
+        'Vernier Caliper & Micrometer Metrology',
+        'Automated Toolpath Setup',
+        'ISO 9001 Quality Inspection',
+      ],
+      createdAt: new Date('2023-09-01'),
+      updatedAt: new Date(),
+    } as unknown as ITrainee,
+    employmentRecord: {
+      _id: 'default-emp-02' as any,
+      trainee: 'default-kp0002' as any,
+      traineeId: 'KP-0002',
+      employerName: 'Tata AutoComp Systems Ltd.',
+      employerContactEmail: 'hr@tataautocomp.com',
+      jobRole: 'CNC Machine Operator & Tool Setter',
+      employmentType: 'wage_employment',
+      district: 'Nashik',
+      startDate: new Date('2024-03-20'),
+      isCurrent: true,
+      monthlyWage: 14000,
+      trainingRelevance: 'directly_related',
+      verificationStatus: 'verified',
+      verificationMetadata: {
+        verifiedByMethod: 'employer_portal',
+        verifiedAt: new Date('2024-04-05'),
+        verifiedByRole: 'Plant Operations Lead (Amit Deshmukh)',
+        notes: 'Verified via EPFO UAN direct linkage and payslip audit.',
+      },
+      followUps: [
+        { milestone: '30_day', dueDate: new Date('2024-04-20'), status: 'retained', completedAt: new Date('2024-04-22'), currentWage: 14000 },
+        { milestone: '90_day', dueDate: new Date('2024-06-20'), status: 'retained', completedAt: new Date('2024-06-25'), currentWage: 16800 },
+        { milestone: '180_day', dueDate: new Date('2024-09-20'), status: 'retained', completedAt: new Date('2024-09-25'), currentWage: 19500 },
+        { milestone: '365_day', dueDate: new Date('2025-03-20'), status: 'pending' },
+      ],
+      notes: 'Completed multi-axis CAD/CAM bridge module; promoted to senior tool setter.',
+    } as unknown as IEmploymentRecord,
+  },
+  'KP-0003': {
+    tag: 'Delayed Placement & Re-engagement',
+    journeyTag: 'Enrolled → Certified → 2-Mo Placement Search → Counseling Re-engagement → Active Placement',
+    trainee: {
+      _id: 'default-kp0003' as any,
+      traineeId: 'KP-0003',
+      name: 'Amit Shinde',
+      phone: '9821098765',
+      email: 'amit.shinde@example.com',
+      district: 'Nagpur',
+      course: 'Solar PV Installer',
+      status: 'employed',
+      monthlyWage: 15200,
+      trainingProvider: 'Vidarbha Renewable Energy Institute',
+      trainingPeriod: {
+        startDate: new Date('2023-07-01'),
+        endDate: new Date('2023-12-30'),
+        hours: 450,
+      },
+      certificate: {
+        certificateId: 'MSD-2024-06291',
+        issueDate: new Date('2024-01-20'),
+        nsqfLevel: 3,
+        issuer: 'SCGJ / MSSDS',
+        grade: 'B+',
+      },
+      skills: [
+        'Solar Panel Mounting',
+        'DC String Inverter Wiring',
+        'Rooftop Fall Protection',
+        'Grid Synchronization',
+        'Battery Storage Basics',
+      ],
+      createdAt: new Date('2023-07-01'),
+      updatedAt: new Date(),
+    } as unknown as ITrainee,
+    employmentRecord: {
+      _id: 'default-emp-03' as any,
+      trainee: 'default-kp0003' as any,
+      traineeId: 'KP-0003',
+      employerName: 'CleanGrid Solar Solutions Pvt. Ltd.',
+      employerContactEmail: 'ops@cleangridsolar.in',
+      jobRole: 'Solar PV Installation & Commissioning Tech',
+      employmentType: 'wage_employment',
+      district: 'Nagpur',
+      startDate: new Date('2024-04-10'),
+      isCurrent: true,
+      monthlyWage: 15200,
+      trainingRelevance: 'directly_related',
+      verificationStatus: 'verified',
+      verificationMetadata: {
+        verifiedByMethod: 'employer_portal',
+        verifiedAt: new Date('2024-04-25'),
+        verifiedByRole: 'Operations Lead (Vikram Rao)',
+        notes: 'Placement verified after field apprenticeship completion and counseling re-engagement.',
+      },
+      followUps: [
+        { milestone: '30_day', dueDate: new Date('2024-05-10'), status: 'retained', completedAt: new Date('2024-05-12'), currentWage: 15200 },
+        { milestone: '90_day', dueDate: new Date('2024-07-10'), status: 'retained', completedAt: new Date('2024-07-15'), currentWage: 15800 },
+        { milestone: '180_day', dueDate: new Date('2024-10-10'), status: 'pending' },
+        { milestone: '365_day', dueDate: new Date('2025-04-10'), status: 'pending' },
+      ],
+      notes: 'Successfully deployed across Nagpur commercial rooftop projects.',
+    } as unknown as IEmploymentRecord,
+  },
+  'KP-0004': {
+    tag: 'Micro-Enterprise & Self-Employment',
+    journeyTag: 'Enrolled → Certified → Mudra Loan Assistance → Boutique Launch → Sustained Self-Employment',
+    trainee: {
+      _id: 'default-kp0004' as any,
+      traineeId: 'KP-0004',
+      name: 'Snehal Kulkarni',
+      phone: '9822345678',
+      email: 'snehal.kulkarni@example.com',
+      district: 'Kolhapur',
+      course: 'Self-Employed Tailor',
+      status: 'self_employed',
+      monthlyWage: 18000,
+      trainingProvider: 'Shahu Mahila Vocational Center, Kolhapur',
+      trainingPeriod: {
+        startDate: new Date('2023-10-01'),
+        endDate: new Date('2024-03-15'),
+        hours: 500,
+      },
+      certificate: {
+        certificateId: 'MSD-2024-09813',
+        issueDate: new Date('2024-03-30'),
+        nsqfLevel: 4,
+        issuer: 'AMHSSC / MSSDS',
+        grade: 'A',
+      },
+      skills: [
+        'Pattern Drafting & Grading',
+        'Industrial Sewing Machine Operation',
+        'Custom Apparel Design',
+        'Client Measurement & Fitting',
+        'Digital UPI & Billing Management',
+      ],
+      createdAt: new Date('2023-10-01'),
+      updatedAt: new Date(),
+    } as unknown as ITrainee,
+    employmentRecord: {
+      _id: 'default-emp-04' as any,
+      trainee: 'default-kp0004' as any,
+      traineeId: 'KP-0004',
+      employerName: 'Snehal Boutique & Custom Apparels',
+      employerContactEmail: 'snehal.boutique@gmail.com',
+      jobRole: 'Master Patternmaker & Boutique Owner',
+      employmentType: 'self_employment',
+      district: 'Kolhapur',
+      startDate: new Date('2024-04-01'),
+      isCurrent: true,
+      monthlyWage: 18000,
+      trainingRelevance: 'directly_related',
+      verificationStatus: 'verified',
+      verificationMetadata: {
+        verifiedByMethod: 'field_visit',
+        verifiedAt: new Date('2024-04-20'),
+        verifiedByRole: 'District Verification Officer',
+        notes: 'Verified trade shop with active Udyam registration and GST billing.',
+      },
+      followUps: [
+        { milestone: '30_day', dueDate: new Date('2024-05-01'), status: 'retained', completedAt: new Date('2024-05-02'), currentWage: 18000 },
+        { milestone: '90_day', dueDate: new Date('2024-07-01'), status: 'retained', completedAt: new Date('2024-07-05'), currentWage: 20500 },
+        { milestone: '180_day', dueDate: new Date('2024-10-01'), status: 'pending' },
+        { milestone: '365_day', dueDate: new Date('2025-04-01'), status: 'pending' },
+      ],
+      notes: 'Operating profitable apparel boutique with 2 apprentice stitchers.',
+    } as unknown as IEmploymentRecord,
+  },
+}
+
+export default async function TraineePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ id?: string }>
+}) {
+  const resolvedParams = searchParams ? await searchParams : {}
+  const currentId = (resolvedParams.id || 'KP-0001').trim()
+
+  const defaultProfile = DEMO_PROFILES[currentId] || DEMO_PROFILES['KP-0001']
+
+  let trainee: ITrainee = defaultProfile.trainee
+  let employmentRecord: IEmploymentRecord = defaultProfile.employmentRecord
+  let allTrainees: { traineeId: string; name: string; course: string; tag: string }[] = Object.values(DEMO_PROFILES).map((p) => ({
+    traineeId: p.trainee.traineeId,
+    name: p.trainee.name,
+    course: p.trainee.course,
+    tag: p.tag,
+  }))
+
+  try {
+    await connectToDatabase()
+
+    const dbTrainees = (await Trainee.find().sort({ traineeId: 1 }).lean()) as ITrainee[]
+    if (dbTrainees.length > 0) {
+      const mergedList = dbTrainees.map((dt) => {
+        const matchingDemo = DEMO_PROFILES[dt.traineeId]
+        return {
+          traineeId: dt.traineeId,
+          name: dt.name,
+          course: dt.course,
+          tag: matchingDemo?.tag || dt.status || 'Trainee',
+        }
+      })
+      allTrainees = mergedList
+
+      const found = (await Trainee.findOne({ traineeId: currentId }).lean()) as ITrainee | null
+      if (found) {
+        trainee = found
+        const foundEmp = (await EmploymentRecord.findOne({ traineeId: currentId }).lean()) as IEmploymentRecord | null
+        if (foundEmp) {
+          employmentRecord = foundEmp
+        }
+      }
+    }
+  } catch {
+    // Graceful fallback to rich demonstration profile
   }
 
   const isVerified = employmentRecord?.verificationStatus === 'verified'
@@ -400,16 +565,22 @@ export default async function TraineePage({
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         {/* Candidate Switcher (Demo Sandboxing) */}
         {allTrainees.length > 1 && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card p-3.5 shadow-xs">
-            <div className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-                <UserCheck className="size-4" />
-              </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Demonstration Passport Selector:
-              </span>
+          <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex size-6 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                  <UserCheck className="size-3.5" />
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Demonstration Outcome Passports (Select Candidate Profile):
+                </span>
+              </div>
+              <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">
+                4 Longitudinal Cohort Archetypes
+              </Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5">
+            
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {allTrainees.map((tr) => {
                 const active = tr.traineeId === trainee.traineeId
                 return (
@@ -417,15 +588,21 @@ export default async function TraineePage({
                     key={tr.traineeId}
                     href={`/trainee?id=${tr.traineeId}`}
                     className={cn(
-                      'rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs',
+                      'flex flex-col justify-between rounded-lg border p-2.5 transition-all text-xs',
                       active
-                        ? 'bg-primary text-primary-foreground shadow-xs'
-                        : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground',
+                        ? 'border-primary/50 bg-primary/10 shadow-xs'
+                        : 'border-border bg-card/60 hover:bg-muted/40 hover:border-border/80'
                     )}
                   >
-                    <span>{tr.name}</span>
-                    <span className={cn('ml-1.5 font-mono text-[11px]', active ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
-                      ({tr.traineeId})
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-foreground">{tr.name}</span>
+                      <span className={cn('font-mono text-[10px]', active ? 'text-primary font-bold' : 'text-muted-foreground')}>
+                        {tr.traineeId}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground font-medium mt-0.5">{tr.course}</p>
+                    <span className={cn('mt-2 inline-flex items-center text-[10px] font-semibold truncate', active ? 'text-primary' : 'text-muted-foreground')}>
+                      {tr.tag}
                     </span>
                   </Link>
                 )

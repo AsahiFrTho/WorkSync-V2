@@ -225,3 +225,111 @@
   }
 }
 
+/* ========================================================================= */
+/* GLOBAL PRINT STYLESHEET — ISOLATED A4 CURRICULUM ACTION PLAN REPORT       */
+/* ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  /* Reset body and remove scroll constraints */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide entire application shell, navigation, sidebars, headers, buttons */
+  aside,
+  header,
+  nav,
+  [role="navigation"],
+  button,
+  .print\:hidden,
+  .no-print {
+    display: none !important;
+  }
+
+  /* When printing the Curriculum Action Plan modal, hide all underlying page content */
+  .app-page-content-wrapper {
+    display: none !important;
+  }
+
+  /* Expand print modal container to full natural document flow */
+  .fixed.inset-0,
+  #curriculum-action-plan-print-modal {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Format official print sheet */
+  #curriculum-action-plan-print-sheet {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 8px 12px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif !important;
+  }
+
+  #curriculum-action-plan-print-sheet * {
+    color: #000000 !important;
+    border-color: #cbd5e1 !important;
+    background-color: transparent !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  #curriculum-action-plan-print-sheet .text-destructive {
+    color: #b91c1c !important;
+    font-weight: 700 !important;
+  }
+
+  #curriculum-action-plan-print-sheet .text-\[\#c9a24a\] {
+    color: #92400e !important;
+    font-weight: 700 !important;
+  }
+
+  #curriculum-action-plan-print-sheet .border-\[\#c9a24a\] {
+    border-color: #92400e !important;
+  }
+
+  #curriculum-action-plan-print-sheet .bg-muted\/20,
+  #curriculum-action-plan-print-sheet .bg-muted\/10 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Page break rules */
+  #curriculum-action-plan-print-sheet > div,
+  #curriculum-action-plan-print-sheet table,
+  #curriculum-action-plan-print-sheet tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+

@@ -232,30 +232,7 @@ interface SessionInfo {
 // httpOnly precisely so client-side code (including this component) cannot
 // read or forge it. This hook is the one sanctioned way the UI finds out
 // who's signed in.
-function useSession() {
-  const [session, setSession] = useState<SessionInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/auth/session')
-      .then((res) => res.json())
-      .then((json) => {
-        if (!cancelled) setSession(json.session || null)
-      })
-      .catch(() => {
-        if (!cancelled) setSession(null)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return { session, loading }
-}
+import { useSessionContext } from '@/lib/auth/session-context'
 
 function Brand() {
   return (
@@ -312,22 +289,21 @@ function ResetDataButton() {
 }
 
 // Signs the user out by asking the server to delete the session cookie
-// (see app/api/auth/logout/route.ts), then sends them to /login. We
-// deliberately do NOT just navigate to /login without calling the API --
-// that would leave the old session cookie valid, so typing the dashboard
-// URL back into the address bar would let them straight back in.
+// (see app/api/auth/logout/route.ts), then sends them to /login.
 function SignOutButton({ className, children }: { className?: string; children: React.ReactNode }) {
   const router = useRouter()
+  const { setSessionUser } = useSessionContext()
   const [busy, setBusy] = useState(false)
 
   const signOut = useCallback(async () => {
     setBusy(true)
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
+      setSessionUser(null)
     } finally {
       router.push('/login')
     }
-  }, [router])
+  }, [router, setSessionUser])
 
   return (
     <button type="button" onClick={() => void signOut()} disabled={busy} className={className}>
@@ -339,26 +315,19 @@ function SignOutButton({ className, children }: { className?: string; children: 
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { session, loading } = useSession()
+  const { session, role, loading } = useSessionContext()
 
-  // Fall back to the Admin identity while the session is still loading so
-  // the layout doesn't flash empty/broken on first paint. proxy.ts has
-  // already verified real access before this page was ever served, so by
-  // the time this component renders we're guaranteed a valid session is
-  // sitting in the cookie -- this is purely about avoiding a loading flicker,
-  // not a security boundary (that boundary is proxy.ts).
-  const role: Role = session?.role || 'admin'
   const roleInfo = ROLES[role]
   const RoleIcon = ROLE_ICONS[role]
   const navSections = getNavigationForRole(role)
   const allNavItems = navSections.flatMap((s) => s.items)
 
-  const displayName = loading ? '…' : session?.name || roleInfo.label
-  const displayOrg = loading ? 'Verifying session…' : session?.email || roleInfo.organization
+  const displayName = loading && !session ? '…' : session?.name || roleInfo.label
+  const displayOrg = loading && !session ? 'Verifying session…' : session?.email || roleInfo.organization
 
   return (
-    <div className="flex min-h-screen w-full bg-background lg:h-screen lg:min-h-0 lg:overflow-hidden font-sans">
-      <aside className="hidden lg:flex w-[270px] shrink-0 flex-col justify-between border-r border-border bg-sidebar lg:h-full lg:min-h-0 lg:overflow-y-auto">
+    <div className="flex min-h-screen w-full bg-background lg:h-screen lg:min-h-0 lg:overflow-hidden font-sans print:h-auto print:overflow-visible">
+      <aside className="hidden lg:flex w-[270px] shrink-0 flex-col justify-between border-r border-border bg-sidebar lg:h-full lg:min-h-0 lg:overflow-y-auto print:hidden">
         <div className="flex flex-col gap-5 p-4">
           <Brand />
 
@@ -471,8 +440,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:h-full lg:min-h-0 bg-background">
-        <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur lg:hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:h-full lg:min-h-0 bg-background print:overflow-visible">
+        <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur lg:hidden print:hidden">
           <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
             <Brand />
             <div className="flex items-center gap-1.5">

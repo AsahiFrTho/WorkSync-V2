@@ -273,13 +273,15 @@ export default function SkillGapsPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        eyebrow="MSSDS • Skill Gap & Curriculum Analytics"
-        title="Skill Gap Intelligence"
-        description="Identifies competency mismatches between employer hiring requirements and ITI/vocational training coverage to address post-certification employment barriers."
-      />
+      <div className="print:hidden">
+        <PageHeader
+          eyebrow="MSSDS • Skill Gap & Curriculum Analytics"
+          title="Skill Gap Intelligence"
+          description="Identifies competency mismatches between employer hiring requirements and ITI/vocational training coverage to address post-certification employment barriers."
+        />
+      </div>
 
-      <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 app-page-content-wrapper print:hidden">
         <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
           
           {/* Breadcrumb & Navigation Backlink */}
@@ -1558,7 +1560,10 @@ export default function SkillGapsPage() {
       {/* 8. PRINTABLE ACTION PLAN PREVIEW MODAL & HIGH-CONTRAST BRIEFING SHEET     */}
       {/* ========================================================================= */}
       {isExportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto print:p-0 print:bg-white print:static print:overflow-visible">
+        <div
+          id="curriculum-action-plan-print-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto print:p-0 print:bg-white print:static print:overflow-visible"
+        >
           <div className="relative w-full max-w-4xl rounded-2xl border border-border bg-card shadow-2xl overflow-hidden my-auto print:my-0 print:border-none print:shadow-none print:w-full print:rounded-none">
             
             {/* Modal Top Control Bar (Hidden during printing) */}
@@ -1833,39 +1838,6 @@ export default function SkillGapsPage() {
           </div>
         </div>
       )}
-
-      {/* Global Print Stylesheet for Crisp A4 Printing */}
-      <style jsx global>{`
-        @media print {
-          html, body {
-            overflow: visible !important;
-            height: auto !important;
-            min-height: 0 !important;
-            background: #ffffff !important;
-            color: #000000 !important;
-          }
-          aside, header, nav, [role="navigation"], .print\\:hidden, button {
-            display: none !important;
-          }
-          .fixed.inset-0 {
-            position: static !important;
-            background: transparent !important;
-            padding: 0 !important;
-            overflow: visible !important;
-          }
-          #curriculum-action-plan-print-sheet {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 16px 20px !important;
-            background: #ffffff !important;
-            color: #000000 !important;
-            font-size: 11pt !important;
-            line-height: 1.4 !important;
-          }
-        }
-      `}</style>
     </AppShell>
   )
 }

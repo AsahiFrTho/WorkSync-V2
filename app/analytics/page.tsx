@@ -30,6 +30,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { DataState } from '@/components/data-state'
 import { SkillGapMatrix } from '@/components/analytics/skill-gap-matrix'
 import { EmployerDemandChart } from '@/components/analytics/employer-demand-chart'
 import { NonPlacementChart } from '@/components/analytics/non-placement-chart'
@@ -37,15 +38,24 @@ import { CoverageComparisonChart } from '@/components/analytics/coverage-compari
 import { OutcomeFunnel } from '@/components/dashboard/outcome-funnel'
 import { WageProgressionChart } from '@/components/dashboard/wage-progression-chart'
 import { CourseTable, ProviderTable } from '@/components/dashboard/performance-tables'
+import { useProgramData } from '@/lib/use-program-data'
 import {
-  summary,
-  inr,
+  kpis,
+  outcomeFunnel as computeOutcomeFunnel,
+  wageProgressionSeries,
+  courseComparison,
+  providerScorecards,
   compact,
+  pct,
+} from '@/lib/compute'
+import {
+  summary as mockSummary,
+  inr,
   districts,
   courses,
   coursePerformance,
   providerPerformance,
-  outcomeFunnel,
+  outcomeFunnel as mockOutcomeFunnel,
   employerVerifications,
   aiInsights,
 } from '@/lib/mock-data'
@@ -82,9 +92,9 @@ function FilterSelect({
 
 function TrainingCoverageCard({ courseFilter }: { courseFilter: string }) {
   const rows =
-    courseFilter === 'All Courses'
+    courseFilter === 'All Courses' || courseFilter === 'all'
       ? coursePerformance
-      : coursePerformance.filter((c) => c.course === courseFilter)
+      : coursePerformance.filter((c) => c.course.toLowerCase().includes(courseFilter.toLowerCase()))
   const view = rows.length ? rows : coursePerformance
   const max = Math.max(...coursePerformance.map((x) => x.trainees))
 
@@ -132,14 +142,54 @@ function TrainingCoverageCard({ courseFilter }: { courseFilter: string }) {
 }
 
 export default function AnalyticsPage() {
+  const { db, loading, error, seeded, refresh, seed } = useProgramData()
+
   const [district, setDistrict] = useState(districts[0])
   const [course, setCourse] = useState(courses[0])
 
-  const maxFunnel = outcomeFunnel[0].value
-  const netYield = Math.round((outcomeFunnel[outcomeFunnel.length - 1].value / maxFunnel) * 100)
+  // Diagnostic filters applied across all analytics queries
+  const activeFilters = useMemo(
+    () => ({
+      district: district === 'All Districts' || district === 'all' ? 'all' : district,
+      course: course === 'All Courses' || course === 'all' ? 'all' : course,
+      provider: 'all',
+    }),
+    [district, course]
+  )
+
+  const computedSummary = useMemo(() => kpis(db, activeFilters), [db, activeFilters])
+  const computedFunnel = useMemo(() => computeOutcomeFunnel(db, activeFilters), [db, activeFilters])
+  const wageSeries = useMemo(
+    () => wageProgressionSeries(db, activeFilters).map((w) => ({ month: w.month, wage: w.wage as number })),
+    [db, activeFilters]
+  )
+
+  // Use live database results or fallback seamlessly during initial load
+  const hasDbRecords = db.learners.length > 0
+  const activeFunnel = hasDbRecords && computedFunnel.length ? computedFunnel : mockOutcomeFunnel
+  const maxFunnel = activeFunnel[0]?.value || 1
+  const netYield = Math.round(((activeFunnel[activeFunnel.length - 1]?.value || 0) / maxFunnel) * 100)
+
+  const activeTotalTrainees = hasDbRecords ? computedSummary.total : mockSummary.totalTrainees
+  const activeCertRate = hasDbRecords
+    ? computedSummary.total > 0 && activeFunnel[2]
+      ? Math.round((activeFunnel[2].value / (activeFunnel[0]?.value || 1)) * 100)
+      : 0
+    : mockSummary.certificationRate
+  const activePlacedCount = computedSummary.placed + computedSummary.selfEmp + computedSummary.appr
+  const activePlacementRate = hasDbRecords
+    ? computedSummary.total > 0
+      ? Math.round((activePlacedCount / computedSummary.total) * 100)
+      : 0
+    : mockSummary.employmentRate
+  const activeRetentionRate = hasDbRecords ? computedSummary.retention3 : mockSummary.retentionRate
 
   // Dynamically filter benchmarks based on the Diagnostic Scope Filter
   const filteredCourseRows = useMemo(() => {
+    if (hasDbRecords) {
+      const fromDb = courseComparison(db, activeFilters)
+      if (fromDb.length) return fromDb
+    }
     const all = coursePerformance.map((c) => ({
       name: c.course,
       total: c.trainees,
@@ -151,9 +201,13 @@ export default function AnalyticsPage() {
     if (course === 'All Courses' || course === 'all') return all
     const matched = all.filter((r) => r.name.toLowerCase().includes(course.toLowerCase()))
     return matched.length ? matched : all
-  }, [course])
+  }, [db, activeFilters, course, hasDbRecords])
 
   const filteredProviderRows = useMemo(() => {
+    if (hasDbRecords) {
+      const fromDb = providerScorecards(db, activeFilters)
+      if (fromDb.length) return fromDb
+    }
     const all = providerPerformance.map((p, i) => ({
       provider: { id: `mock-${i}`, name: p.provider, district: 'Pune', status: 'active' },
       learners: p.trainees,
@@ -168,7 +222,18 @@ export default function AnalyticsPage() {
     if (district === 'All Districts' || district === 'all') return all
     const matched = all.filter((r) => r.provider.name.toLowerCase().includes(district.toLowerCase()))
     return matched.length ? matched : all
-  }, [district])
+  }, [db, activeFilters, district, hasDbRecords])
+
+  const filteredEmployerVerifications = useMemo(() => {
+    let list = employerVerifications
+    if (course !== 'All Courses' && course !== 'all') {
+      list = list.filter((v) => v.course.toLowerCase().includes(course.toLowerCase()))
+    }
+    if (district !== 'All Districts' && district !== 'all') {
+      list = list.filter((v) => v.provider.toLowerCase().includes(district.toLowerCase()))
+    }
+    return list.length ? list : employerVerifications
+  }, [course, district])
 
   return (
     <AppShell>
@@ -179,250 +244,251 @@ export default function AnalyticsPage() {
       />
 
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        
-        {/* ========================================================================= */}
-        {/* BEGINNER-FRIENDLY EXPLAINER BANNER: "WHAT IS THIS COMMAND CENTER?"         */}
-        {/* ========================================================================= */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-3.5 text-xs text-muted-foreground shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-              <HelpCircle className="size-4" />
-            </div>
-            <div>
-              <span className="font-semibold text-foreground">What am I looking at? </span>
-              <span>
-                This Command Center tracks the <strong>entire trainee journey</strong> — from batch intake and exam certification through employer-verified employment and 6-month on-job retention.
-              </span>
-            </div>
-          </div>
-          <span className="shrink-0 rounded-md border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-            LIVE ANALYTICS
-          </span>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 1. TOP KPI RIBBON (4 Distinct Semantic Operational Metrics)               */}
-        {/* ========================================================================= */}
-        <section aria-label="Key Performance Indicators" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Trainees Enrolled */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Trainees Enrolled
-              </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
-                <Users className="size-4.5" />
+        <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
+          
+          {/* ========================================================================= */}
+          {/* BEGINNER-FRIENDLY EXPLAINER BANNER: "WHAT IS THIS COMMAND CENTER?"         */}
+          {/* ========================================================================= */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border bg-card/60 p-3.5 text-xs text-muted-foreground shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                <HelpCircle className="size-4" />
               </div>
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
-                  {compact(summary.totalTrainees)}
-                </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
-                  <TrendingUp className="size-3 text-primary stroke-[2.5]" />
-                  Active Cohort
+              <div>
+                <span className="font-semibold text-foreground">What am I looking at? </span>
+                <span>
+                  This Command Center tracks the <strong>entire trainee journey</strong> — from batch intake and exam certification through employer-verified employment and 6-month on-job retention.
                 </span>
               </div>
-              <p className="mt-1 text-xs font-medium text-muted-foreground">
-                {summary.totalTrainees.toLocaleString('en-IN')} across affiliated vocational centres
-              </p>
             </div>
+            <span className="shrink-0 rounded-md border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              LIVE ANALYTICS
+            </span>
           </div>
 
-          {/* Card 2: Certification Rate */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Certification Rate
-              </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
-                <Award className="size-4.5" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
-                  {summary.certificationRate}%
+          {/* ========================================================================= */}
+          {/* 1. TOP KPI RIBBON (4 Distinct Semantic Operational Metrics)               */}
+          {/* ========================================================================= */}
+          <section aria-label="Key Performance Indicators" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Card 1: Trainees Enrolled */}
+            <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Trainees Enrolled
                 </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                  NSQF L4
-                </span>
-              </div>
-              <p className="mt-1 text-xs font-medium text-muted-foreground">
-                44,600 candidates certified via SSC assessment
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3: Verified Placement */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Verified Placement
-              </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
-                <Briefcase className="size-4.5" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
-                  {summary.employmentRate}%
-                </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-success/25 bg-success/10 px-1.5 py-0.5 text-[11px] font-semibold text-success">
-                  <TrendingUp className="size-3 text-success stroke-[2.5]" />
-                  +3.1 pts
-                </span>
-              </div>
-              <p className="mt-1 text-xs font-medium text-muted-foreground">
-                Employer-verified wage & job placement
-              </p>
-            </div>
-          </div>
-
-          {/* Card 4: 6-Month Retention */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                6-Month Retention
-              </span>
-              <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
-                <Repeat className="size-4.5" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
-                  {summary.retentionRate}%
-                </span>
-                <span className="inline-flex items-center gap-0.5 rounded-md border border-warning/25 bg-warning/10 px-1.5 py-0.5 text-[11px] font-semibold text-warning">
-                  +1.4 pts
-                </span>
-              </div>
-              <p className="mt-1 text-xs font-medium text-muted-foreground">
-                Verified sustained on-job stability
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* 2. SIGNATURE LONGITUDINAL OUTCOME PIPELINE OVERVIEW RIBBON                */}
-        {/* ========================================================================= */}
-        <section aria-label="Longitudinal Outcome Pipeline" className="rounded-xl border border-border bg-card p-5 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3.5">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-foreground uppercase tracking-wide">
-                  Trainee Longitudinal Progression Pipeline
-                </span>
-                <Badge variant="outline" className="text-[10px] font-medium border-border">
-                  MSSDS Tracked
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Conversion audits from initial batch enrolment through 6-month on-job retention
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
-              <span>Net Pipeline Yield: <strong className="text-primary">{netYield}%</strong></span>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {outcomeFunnel.map((stage, idx) => {
-              const isLast = idx === outcomeFunnel.length - 1
-              const pct = Math.round((stage.value / maxFunnel) * 100)
-
-              return (
-                <div
-                  key={stage.stage}
-                  className={cn(
-                    'relative flex flex-col justify-between rounded-lg border p-3.5 transition-all bg-card/80',
-                    isLast
-                      ? 'border-primary/40 bg-primary/5 shadow-2xs'
-                      : 'border-border'
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Stage 0{idx + 1}
-                    </span>
-                    <span
-                      className={cn(
-                        'rounded px-1.5 py-0.5 text-[10px] font-semibold border',
-                        isLast
-                          ? 'border-primary/30 bg-primary/10 text-primary'
-                          : 'border-border bg-muted text-muted-foreground'
-                      )}
-                    >
-                      {pct}%
-                    </span>
-                  </div>
-
-                  <div className="mt-2">
-                    <p className="text-xs font-semibold text-foreground truncate">
-                      {stage.stage}
-                    </p>
-                    <p className="text-lg font-bold text-foreground tabular-nums mt-0.5">
-                      {compact(stage.value)}
-                    </p>
-                    <p className="text-[11px] font-normal text-muted-foreground">
-                      {stage.value.toLocaleString('en-IN')} candidates
-                    </p>
-                  </div>
+                <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                  <Users className="size-4.5" />
                 </div>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* 3. DIAGNOSTIC PERFORMANCE SCOPE FILTER                                    */}
-        {/* ========================================================================= */}
-        <Card className="border border-border bg-card shadow-xs rounded-xl">
-          <CardContent className="flex flex-col gap-3 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                <Filter className="size-4 text-primary" aria-hidden="true" />
-                <span className="text-sm font-bold text-foreground">Diagnostic Scope Filter</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Isolate training capacity, wage growth, and employer demand across specific districts and trades to diagnose placement variances.
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap items-end gap-4 pt-1">
-              <FilterSelect
-                label="District Scope"
-                value={district}
-                options={districts}
-                onChange={setDistrict}
-              />
-              <FilterSelect
-                label="Vocational Trade"
-                value={course}
-                options={courses}
-                onChange={setCourse}
-              />
-              <div className="ml-auto flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
-                <span>Active Scope:</span>
-                <Badge variant="outline" className="border-border text-foreground font-medium">{district}</Badge>
-                <Badge variant="outline" className="border-border text-foreground font-medium">{course}</Badge>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
+                    {compact(activeTotalTrainees)}
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                    <TrendingUp className="size-3 text-primary stroke-[2.5]" />
+                    Active Cohort
+                  </span>
+                </div>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  {activeTotalTrainees.toLocaleString('en-IN')} across affiliated vocational centres
+                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* ========================================================================= */}
-        {/* 4. MAIN ANALYTICAL ROW 1: OUTCOME FUNNEL & WAGE PROGRESSION TRAJECTORY     */}
-        {/* ========================================================================= */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <OutcomeFunnel />
-          <WageProgressionChart />
-        </section>
+            {/* Card 2: Certification Rate */}
+            <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Certification Rate
+                </span>
+                <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                  <Award className="size-4.5" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
+                    {activeCertRate}%
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                    NSQF L4
+                  </span>
+                </div>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  {hasDbRecords ? `${activeFunnel[2]?.value || 0} candidates certified via SSC assessment` : '44,600 candidates certified via SSC assessment'}
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3: Verified Placement */}
+            <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Verified Placement
+                </span>
+                <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                  <Briefcase className="size-4.5" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
+                    {activePlacementRate}%
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 rounded-md border border-success/25 bg-success/10 px-1.5 py-0.5 text-[11px] font-semibold text-success">
+                    <TrendingUp className="size-3 text-success stroke-[2.5]" />
+                    +3.1 pts
+                  </span>
+                </div>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  Employer-verified wage & job placement
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4: 6-Month Retention */}
+            <div className="flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-5 transition-all duration-200 ease-in-out hover:bg-muted/40 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  6-Month Retention
+                </span>
+                <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                  <Repeat className="size-4.5" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground tabular-nums">
+                    {activeRetentionRate}%
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 rounded-md border border-warning/25 bg-warning/10 px-1.5 py-0.5 text-[11px] font-semibold text-warning">
+                    +1.4 pts
+                  </span>
+                </div>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  Verified sustained on-job stability
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ========================================================================= */}
+          {/* 2. SIGNATURE LONGITUDINAL OUTCOME PIPELINE OVERVIEW RIBBON                */}
+          {/* ========================================================================= */}
+          <section aria-label="Longitudinal Outcome Pipeline" className="rounded-xl border border-border bg-card p-5 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3.5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-foreground uppercase tracking-wide">
+                    Trainee Longitudinal Progression Pipeline
+                  </span>
+                  <Badge variant="outline" className="text-[10px] font-medium border-border">
+                    MSSDS Tracked
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Conversion audits from initial batch enrolment through 6-month on-job retention
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
+                <span>Net Pipeline Yield: <strong className="text-primary">{netYield}%</strong></span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {activeFunnel.map((stage, idx) => {
+                const isLast = idx === activeFunnel.length - 1
+                const pctVal = Math.round((stage.value / maxFunnel) * 100)
+
+                return (
+                  <div
+                    key={stage.stage}
+                    className={cn(
+                      'relative flex flex-col justify-between rounded-lg border p-3.5 transition-all bg-card/80',
+                      isLast
+                        ? 'border-primary/40 bg-primary/5 shadow-2xs'
+                        : 'border-border'
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Stage 0{idx + 1}
+                      </span>
+                      <span
+                        className={cn(
+                          'rounded px-1.5 py-0.5 text-[10px] font-semibold border',
+                          isLast
+                            ? 'border-primary/30 bg-primary/10 text-primary'
+                            : 'border-border bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {pctVal}%
+                      </span>
+                    </div>
+
+                    <div className="mt-2">
+                      <p className="text-xs font-semibold text-foreground truncate">
+                        {stage.stage}
+                      </p>
+                      <p className="text-lg font-bold text-foreground tabular-nums mt-0.5">
+                        {compact(stage.value)}
+                      </p>
+                      <p className="text-[11px] font-normal text-muted-foreground">
+                        {stage.value.toLocaleString('en-IN')} candidates
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* ========================================================================= */}
+          {/* 3. DIAGNOSTIC PERFORMANCE SCOPE FILTER                                    */}
+          {/* ========================================================================= */}
+          <Card className="border border-border bg-card shadow-xs rounded-xl">
+            <CardContent className="flex flex-col gap-3 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="size-4 text-primary" aria-hidden="true" />
+                  <span className="text-sm font-bold text-foreground">Diagnostic Scope Filter</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Isolate training capacity, wage growth, and employer demand across specific districts and trades to diagnose placement variances.
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap items-end gap-4 pt-1">
+                <FilterSelect
+                  label="District Scope"
+                  value={district}
+                  options={districts}
+                  onChange={setDistrict}
+                />
+                <FilterSelect
+                  label="Vocational Trade"
+                  value={course}
+                  options={courses}
+                  onChange={setCourse}
+                />
+                <div className="ml-auto flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <span>Active Scope:</span>
+                  <Badge variant="outline" className="border-border text-foreground font-medium">{district}</Badge>
+                  <Badge variant="outline" className="border-border text-foreground font-medium">{course}</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ========================================================================= */}
+          {/* 4. MAIN ANALYTICAL ROW 1: OUTCOME FUNNEL & WAGE PROGRESSION TRAJECTORY     */}
+          {/* ========================================================================= */}
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <OutcomeFunnel stages={activeFunnel} />
+            <WageProgressionChart data={wageSeries} />
+          </section>
 
         {/* ========================================================================= */}
         {/* 5. SKILL GAP MATRIX & INDUSTRY DEMAND                                     */}
@@ -464,12 +530,12 @@ export default function AnalyticsPage() {
             </div>
 
             <span className="text-xs font-semibold text-muted-foreground">
-              {employerVerifications.length} recent verification events
+              {filteredEmployerVerifications.length} recent verification events
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-            {employerVerifications.map((item) => {
+            {filteredEmployerVerifications.map((item) => {
               const isVerified = item.status === 'verified'
               const isPending = item.status === 'pending'
               const isFlagged = item.status === 'flagged'
@@ -597,6 +663,8 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </section>
+
+        </DataState>
       </div>
     </AppShell>
   )
