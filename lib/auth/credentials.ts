@@ -24,7 +24,7 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
   { email: "admin@worksync.gov", password: DEMO_PASSWORD, role: "admin", name: "Dr. Sanjay Patil" },
   { email: "provider@worksync.gov", password: DEMO_PASSWORD, role: "provider", name: "Sahyadri Vocational Institute" },
   { email: "employer@worksync.gov", password: DEMO_PASSWORD, role: "employer", name: "Deccan Electricals Pvt. Ltd." },
-  { email: "trainee@worksync.gov", password: DEMO_PASSWORD, role: "trainee", name: "Rahul Pawar" },
+  { email: "trainee@worksync.gov", password: DEMO_PASSWORD, role: "trainee", name: "Trainee KP-0001" },
 ];
 
 export function findAccount(email: string): DemoAccount | null {

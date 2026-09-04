@@ -185,7 +185,7 @@ export default function EmployerPage() {
             trainee: {
               _id: 't-01',
               traineeId: 'KP-0001',
-              name: 'Rahul Pawar',
+              name: 'Trainee KP-0001',
               district: 'Pune',
               course: 'Electrician',
               status: 'employed',
@@ -284,7 +284,7 @@ export default function EmployerPage() {
           trainee: {
             _id: 't-01',
             traineeId: 'KP-0001',
-            name: 'Rahul Pawar',
+            name: 'Trainee KP-0001',
             district: 'Pune',
             course: 'Electrician',
             status: 'employed',

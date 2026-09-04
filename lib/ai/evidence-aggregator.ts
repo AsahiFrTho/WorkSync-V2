@@ -2,6 +2,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import Trainee, { type ITrainee } from "@/models/trainee";
 import EmploymentRecord, { type IEmploymentRecord } from "@/models/employment-record";
 import { getFallbackProgramData } from "@/lib/seed-data";
+import { getMarketEvidence } from "@/lib/market-intelligence/repository";
 import type {
   INormalizedTraineeEvidence,
   ITraineeEvidence,
@@ -10,6 +11,29 @@ import type {
   IVerificationMetadataEvidence,
   IWageProgressionEvidence,
 } from "./types";
+
+/**
+ * Attaches official labour-market & qualification evidence if matched.
+ * Leaves marketEvidence null if no official benchmark exists for this trade/district.
+ */
+async function attachMarketEvidence(evidence: INormalizedTraineeEvidence): Promise<INormalizedTraineeEvidence> {
+  try {
+    const market = await getMarketEvidence({
+      course: evidence.trainee.course,
+      district: evidence.trainee.district,
+      nsqfLevel: evidence.trainee.certificate?.nsqfLevel,
+    });
+    return {
+      ...evidence,
+      marketEvidence: market || null,
+    };
+  } catch {
+    return {
+      ...evidence,
+      marketEvidence: null,
+    };
+  }
+}
 
 /**
  * Normalizes any Date or ISO date string into a clean YYYY-MM-DD string.
@@ -69,7 +93,7 @@ export async function getCareerEvidence(
       const fallbackEvidence: INormalizedTraineeEvidence = {
         trainee: {
           traineeId: "KP-0001",
-          name: "Rahul Pawar",
+          name: "Trainee KP-0001",
           course: "Electrician",
           district: "Pune",
           status: "employed",
@@ -147,14 +171,14 @@ export async function getCareerEvidence(
         },
         aggregatedAt: new Date().toISOString(),
       };
-      return fallbackEvidence;
+      return await attachMarketEvidence(fallbackEvidence);
     }
 
     if (normalizedTraineeId === "KP-0002") {
       const fallbackEvidence: INormalizedTraineeEvidence = {
         trainee: {
           traineeId: "KP-0002",
-          name: "Priya Sharma",
+          name: "Trainee KP-0002",
           course: "CNC Machine Operator",
           district: "Nashik",
           status: "employed",
@@ -232,14 +256,14 @@ export async function getCareerEvidence(
         },
         aggregatedAt: new Date().toISOString(),
       };
-      return fallbackEvidence;
+      return await attachMarketEvidence(fallbackEvidence);
     }
 
     if (normalizedTraineeId === "KP-0003") {
       const fallbackEvidence: INormalizedTraineeEvidence = {
         trainee: {
           traineeId: "KP-0003",
-          name: "Amit Shinde",
+          name: "Trainee KP-0003",
           course: "Solar PV Installer",
           district: "Nagpur",
           status: "employed",
@@ -308,14 +332,14 @@ export async function getCareerEvidence(
         },
         aggregatedAt: new Date().toISOString(),
       };
-      return fallbackEvidence;
+      return await attachMarketEvidence(fallbackEvidence);
     }
 
     if (normalizedTraineeId === "KP-0004") {
       const fallbackEvidence: INormalizedTraineeEvidence = {
         trainee: {
           traineeId: "KP-0004",
-          name: "Snehal Kulkarni",
+          name: "Trainee KP-0004",
           course: "Self-Employed Tailor",
           district: "Kolhapur",
           status: "self_employed",
@@ -384,7 +408,7 @@ export async function getCareerEvidence(
         },
         aggregatedAt: new Date().toISOString(),
       };
-      return fallbackEvidence;
+      return await attachMarketEvidence(fallbackEvidence);
     }
 
     const fallback = getFallbackProgramData();
@@ -412,20 +436,20 @@ export async function getCareerEvidence(
         trainingProvider: fallbackTrainee.trainingProvider || null,
         trainingPeriod: fallbackTrainee.trainingPeriod
           ? {
-              startDate: formatDate(fallbackTrainee.trainingPeriod.startDate),
-              endDate: formatDate(fallbackTrainee.trainingPeriod.endDate),
-              hours: fallbackTrainee.trainingPeriod.hours || null,
-            }
+            startDate: formatDate(fallbackTrainee.trainingPeriod.startDate),
+            endDate: formatDate(fallbackTrainee.trainingPeriod.endDate),
+            hours: fallbackTrainee.trainingPeriod.hours || null,
+          }
           : null,
         skills: fallbackTrainee.skills || [],
         certificate: fallbackTrainee.certificate
           ? {
-              certificateId: fallbackTrainee.certificate.certificateId || null,
-              issueDate: formatDate(fallbackTrainee.certificate.issueDate),
-              nsqfLevel: fallbackTrainee.certificate.nsqfLevel || null,
-              issuer: fallbackTrainee.certificate.issuer || null,
-              grade: fallbackTrainee.certificate.grade || null,
-            }
+            certificateId: fallbackTrainee.certificate.certificateId || null,
+            issueDate: formatDate(fallbackTrainee.certificate.issueDate),
+            nsqfLevel: fallbackTrainee.certificate.nsqfLevel || null,
+            issuer: fallbackTrainee.certificate.issuer || null,
+            grade: fallbackTrainee.certificate.grade || null,
+          }
           : null,
       },
       employment: {
@@ -479,20 +503,22 @@ export async function getCareerEvidence(
     trainingProvider: traineeDoc.trainingProvider || null,
     trainingPeriod: traineeDoc.trainingPeriod
       ? {
-          startDate: formatDate(traineeDoc.trainingPeriod.startDate),
-          endDate: formatDate(traineeDoc.trainingPeriod.endDate),
-          hours: typeof traineeDoc.trainingPeriod.hours === "number" ? traineeDoc.trainingPeriod.hours : null,
-        }
+        startDate: formatDate(traineeDoc.trainingPeriod.startDate),
+        endDate: formatDate(traineeDoc.trainingPeriod.endDate),
+        hours: typeof traineeDoc.trainingPeriod.hours === "number" ? traineeDoc.trainingPeriod.hours : null,
+      }
       : null,
     skills: Array.isArray(traineeDoc.skills) ? traineeDoc.skills : [],
     certificate: traineeDoc.certificate
       ? {
-          certificateId: traineeDoc.certificate.certificateId || null,
-          issueDate: formatDate(traineeDoc.certificate.issueDate),
-          nsqfLevel: typeof traineeDoc.certificate.nsqfLevel === "number" ? traineeDoc.certificate.nsqfLevel : null,
-          issuer: traineeDoc.certificate.issuer || null,
-          grade: traineeDoc.certificate.grade || null,
-        }
+        certificateId: traineeDoc.certificate.certificateId || null,
+        issueDate: formatDate(traineeDoc.certificate.issueDate),
+        nsqfLevel: typeof traineeDoc.certificate.nsqfLevel === "number" ? traineeDoc.certificate.nsqfLevel : null,
+        issuer: traineeDoc.certificate.issuer || null,
+        grade: traineeDoc.certificate.grade || null,
+        digilockerStatus: "not_verified",
+        verificationSource: "database_record",
+      }
       : null,
   };
 

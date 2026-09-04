@@ -18,7 +18,13 @@ interface FunnelStage {
 // this phase). The Government Dashboard always passes real computed stages
 // from lib/compute.ts's outcomeFunnel(); if a caller omits the prop, we fall
 // back to the illustrative demo array instead of crashing.
-export function OutcomeFunnel({ stages = mockOutcomeFunnel }: { stages?: FunnelStage[] }) {
+export function OutcomeFunnel({
+  stages = mockOutcomeFunnel,
+  badgeText = 'Demonstration Cohort — Work-Sync',
+}: {
+  stages?: FunnelStage[]
+  badgeText?: string
+}) {
   const max = stages[0]?.value || 1
   const netYield = Math.round(((stages[stages.length - 1]?.value || 0) / max) * 100)
 
@@ -29,12 +35,14 @@ export function OutcomeFunnel({ stages = mockOutcomeFunnel }: { stages?: FunnelS
           <div>
             <div className="flex items-center gap-2">
               <CardTitle>Longitudinal Outcome Funnel</CardTitle>
-              <Badge variant="default" className="text-[10px] px-2 py-0.2">
-                5-Stage Audit
-              </Badge>
+              {badgeText && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500/30 bg-amber-500/10 text-amber-500 font-medium">
+                  {badgeText}
+                </Badge>
+              )}
             </div>
             <CardDescription className="mt-0.5">
-              Enrolled → Completed → Certified → Employed → Retained
+              Enrolled → Completed → Certified → Employed → Retained (5-Stage Pilot Audit)
             </CardDescription>
           </div>
 

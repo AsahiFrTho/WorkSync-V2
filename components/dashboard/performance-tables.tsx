@@ -79,14 +79,31 @@ function ConfidenceBadge({ sampleSize }: { sampleSize: number }) {
 }
 
 // ── District Performance (dashboard-only, always real data) ────────────────
-export function DistrictTable({ rows }: { rows: GroupRow[] }) {
+export function DistrictTable({
+  rows,
+  badgeText = 'Demonstration Cohort — Work-Sync',
+}: {
+  rows: GroupRow[]
+  badgeText?: string
+}) {
   return (
     <Card className="border border-border bg-card rounded-xl overflow-hidden">
       <CardHeader className="border-b border-border pb-3.5">
-        <CardTitle>District Performance Index</CardTitle>
-        <CardDescription className="mt-0.5">
-          Live placement, verification and wage-growth audit by district
-        </CardDescription>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <CardTitle>District Performance Index</CardTitle>
+              {badgeText && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500/30 bg-amber-500/10 text-amber-500 font-medium">
+                  {badgeText}
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="mt-0.5">
+              Live placement, verification and wage-growth audit across prototype cohort districts
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {!rows.length ? (
@@ -129,14 +146,31 @@ export function DistrictTable({ rows }: { rows: GroupRow[] }) {
 }
 
 // ── Course / Trade Performance (shared with Provider Analytics page) ───────
-export function CourseTable({ rows = FALLBACK_COURSE_ROWS }: { rows?: GroupRow[] }) {
+export function CourseTable({
+  rows = FALLBACK_COURSE_ROWS,
+  badgeText = 'Demonstration Cohort — Work-Sync',
+}: {
+  rows?: GroupRow[]
+  badgeText?: string
+}) {
   return (
     <Card className="border border-border bg-card rounded-xl overflow-hidden">
       <CardHeader className="border-b border-border pb-3.5">
-        <CardTitle>Course & Trade Performance</CardTitle>
-        <CardDescription className="mt-0.5">
-          Placement yield by vocational qualification, with a confidence indicator based on cohort size
-        </CardDescription>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <CardTitle>Course & Trade Performance</CardTitle>
+              {badgeText && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500/30 bg-amber-500/10 text-amber-500 font-medium">
+                  {badgeText}
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="mt-0.5">
+              Placement yield by vocational qualification in pilot cohort, with sample size indicator
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {!rows.length ? (
@@ -179,14 +213,31 @@ export function CourseTable({ rows = FALLBACK_COURSE_ROWS }: { rows?: GroupRow[]
 }
 
 // ── Training Provider Scorecards (shared with Provider Analytics page) ─────
-export function ProviderTable({ rows = FALLBACK_PROVIDER_ROWS }: { rows?: ProviderRow[] }) {
+export function ProviderTable({
+  rows = FALLBACK_PROVIDER_ROWS,
+  badgeText = 'Demonstration Cohort — Work-Sync',
+}: {
+  rows?: ProviderRow[]
+  badgeText?: string
+}) {
   return (
     <Card className="border border-border bg-card rounded-xl overflow-hidden">
       <CardHeader className="border-b border-border pb-3.5">
-        <CardTitle>Training Provider Scorecards</CardTitle>
-        <CardDescription className="mt-0.5">
-          Composite score computed from placement, verification, retention and completeness data
-        </CardDescription>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <CardTitle>Training Provider Scorecards</CardTitle>
+              {badgeText && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500/30 bg-amber-500/10 text-amber-500 font-medium">
+                  {badgeText}
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="mt-0.5">
+              Composite score computed from pilot placement, verification, retention and completeness
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {!rows.length ? (

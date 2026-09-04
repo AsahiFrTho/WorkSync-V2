@@ -15,7 +15,13 @@ interface EmploymentTypeDatum {
 // Dashboard, so there's no legacy caller to stay backward-compatible with.
 // Data comes from lib/compute.ts's employmentTypeSplit(), which tallies the
 // real `employmentType` field already recorded on every OutcomeEvent.
-export function EmploymentTypeChart({ data }: { data: EmploymentTypeDatum[] }) {
+export function EmploymentTypeChart({
+  data,
+  badgeText = 'Demonstration Cohort — Work-Sync',
+}: {
+  data: EmploymentTypeDatum[]
+  badgeText?: string
+}) {
   const total = data.reduce((s, d) => s + d.value, 0)
 
   if (!total) {
@@ -39,9 +45,16 @@ export function EmploymentTypeChart({ data }: { data: EmploymentTypeDatum[] }) {
       <CardHeader className="border-b border-border pb-3.5">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Employment Modality</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>Employment Modality</CardTitle>
+              {badgeText && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500/30 bg-amber-500/10 text-amber-500 font-medium">
+                  {badgeText}
+                </Badge>
+              )}
+            </div>
             <CardDescription className="mt-0.5">
-              Breakdown of verified placement types
+              Breakdown of verified placement types in pilot cohort
             </CardDescription>
           </div>
           <Badge variant="neutral" className="text-[10px]">

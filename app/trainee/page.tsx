@@ -29,7 +29,11 @@ import Trainee, { type ITrainee } from '@/models/trainee'
 import EmploymentRecord, { type IEmploymentRecord } from '@/models/employment-record'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { CareerIntelligenceCard } from '@/components/trainee/career-intelligence-card'
+import { DigiLockerBadge } from '@/components/trainee/digilocker-badge'
+import { isDigiLockerConfigured } from '@/lib/digilocker/client'
+import type { DigiLockerVerificationStatus } from '@/lib/digilocker/types'
 
 const inr = (n: number) =>
   new Intl.NumberFormat('en-IN', {
@@ -86,9 +90,9 @@ const DEMO_PROFILES: Record<string, DemoProfileData> = {
     trainee: {
       _id: 'default-kp0001' as any,
       traineeId: 'KP-0001',
-      name: 'Rahul Pawar',
+      name: 'Trainee KP-0001',
       phone: '9823012345',
-      email: 'rahul.pawar@example.com',
+      email: 'trainee.kp0001@example.com',
       district: 'Pune',
       course: 'Electrician',
       status: 'employed',
@@ -151,9 +155,9 @@ const DEMO_PROFILES: Record<string, DemoProfileData> = {
     trainee: {
       _id: 'default-kp0002' as any,
       traineeId: 'KP-0002',
-      name: 'Priya Sharma',
+      name: 'Trainee KP-0002',
       phone: '9822054321',
-      email: 'priya.sharma@example.com',
+      email: 'trainee.kp0002@example.com',
       district: 'Nashik',
       course: 'CNC Machine Operator',
       status: 'employed',
@@ -216,9 +220,9 @@ const DEMO_PROFILES: Record<string, DemoProfileData> = {
     trainee: {
       _id: 'default-kp0003' as any,
       traineeId: 'KP-0003',
-      name: 'Amit Shinde',
+      name: 'Trainee KP-0003',
       phone: '9821098765',
-      email: 'amit.shinde@example.com',
+      email: 'trainee.kp0003@example.com',
       district: 'Nagpur',
       course: 'Solar PV Installer',
       status: 'employed',
@@ -281,9 +285,9 @@ const DEMO_PROFILES: Record<string, DemoProfileData> = {
     trainee: {
       _id: 'default-kp0004' as any,
       traineeId: 'KP-0004',
-      name: 'Snehal Kulkarni',
+      name: 'Trainee KP-0004',
       phone: '9822345678',
-      email: 'snehal.kulkarni@example.com',
+      email: 'trainee.kp0004@example.com',
       district: 'Kolhapur',
       course: 'Self-Employed Tailor',
       status: 'self_employed',
@@ -345,10 +349,38 @@ const DEMO_PROFILES: Record<string, DemoProfileData> = {
 export default async function TraineePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ id?: string }>
+  searchParams?: Promise<{ id?: string; dl_status?: string; dl_ref?: string }>
 }) {
   const resolvedParams = searchParams ? await searchParams : {}
   const currentId = (resolvedParams.id || 'KP-0001').trim()
+
+  const cookieStore = await cookies()
+  const liveConfigured = isDigiLockerConfigured()
+  const dlStatusParam = resolvedParams.dl_status
+
+  let initialDlStatus: DigiLockerVerificationStatus = 'not_verified'
+  let initialVerifiedAt: string | null = null
+  let initialDocUri: string | null = null
+
+  const dlCookieVal = cookieStore.get(`worksync_dl_verified_${currentId}`)?.value
+  if (dlCookieVal) {
+    try {
+      const parsed = JSON.parse(dlCookieVal)
+      initialDlStatus = parsed.isSimulation ? 'simulation' : 'verified'
+      initialVerifiedAt = parsed.verifiedAt || null
+      initialDocUri = parsed.documentUri || null
+    } catch {
+      // ignore JSON parse error
+    }
+  } else if (dlStatusParam === 'verified') {
+    initialDlStatus = 'verified'
+    initialVerifiedAt = new Date().toISOString()
+    initialDocUri = resolvedParams.dl_ref || `in.gov.skillindia.cert-${currentId}`
+  } else if (dlStatusParam === 'simulation') {
+    initialDlStatus = 'simulation'
+    initialVerifiedAt = new Date().toISOString()
+    initialDocUri = `in.gov.skillindia.cert-${currentId}-demo`
+  }
 
   const defaultProfile = DEMO_PROFILES[currentId] || DEMO_PROFILES['KP-0001']
 
@@ -1026,6 +1058,20 @@ export default async function TraineePage({
                   ) : (
                     <p className="text-xs font-medium text-muted-foreground">Certificate information pending issuance.</p>
                   )}
+
+                  {/* Compact DigiLocker Credential Verification */}
+                  <DigiLockerBadge
+                    traineeId={t.id}
+                    certificateId={t.certificate?.certificateId}
+                    issuer={t.certificate?.issuer}
+                    nsqfLevel={t.certificate?.nsqfLevel}
+                    grade={t.certificate?.grade}
+                    issueDate={formattedCertDate || (t.certificate?.issueDate ? String(t.certificate.issueDate) : null)}
+                    initialStatus={initialDlStatus}
+                    initialVerifiedAt={initialVerifiedAt}
+                    initialDocUri={initialDocUri}
+                    isLiveConfigured={liveConfigured}
+                  />
                 </div>
 
                 {/* Dossier Section 2: Certified Competencies */}

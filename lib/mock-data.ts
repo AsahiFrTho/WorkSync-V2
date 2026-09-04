@@ -214,11 +214,11 @@ export const aiInsights: AiInsight[] = [
 
 export const traineePassport = {
   id: 'MH-SKL-2023-0098421',
-  name: 'Rahul Pawar',
+  name: 'Trainee KP-0001',
   district: 'Pune',
   course: 'Electrician',
   provider: 'Yashaswi Skill Academy',
-  photoInitials: 'RP',
+  photoInitials: 'KP',
   journey: [
     { step: 'Training', status: 'complete', date: 'Jan 2024', detail: '480 hrs completed' },
     { step: 'Certification', status: 'complete', date: 'Mar 2024', detail: 'NSQF Level 4 · Score 82%' },
@@ -236,7 +236,7 @@ export const traineePassport = {
 export const employerVerifications = [
   {
     id: 'EMP-2024-3341',
-    trainee: 'Rahul Pawar',
+    trainee: 'Trainee KP-0001',
     passportId: 'MH-SKL-2023-0098421',
     course: 'Electrician',
     provider: 'Yashaswi Skill Academy',

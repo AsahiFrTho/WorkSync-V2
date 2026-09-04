@@ -24,7 +24,13 @@ interface WagePoint {
 // by the (not-yet-migrated) Provider Analytics page, so it keeps a mock
 // fallback. The Dashboard always supplies real monthly wage averages
 // computed from actual OutcomeEvent records via wageProgressionSeries().
-export function WageProgressionChart({ data = mockWageProgression }: { data?: WagePoint[] }) {
+export function WageProgressionChart({
+  data = mockWageProgression,
+  badgeText = 'Demonstration Cohort — Work-Sync',
+}: {
+  data?: WagePoint[]
+  badgeText?: string
+}) {
   // Guard against an empty real series (e.g. a freshly-seeded, very small
   // cohort with no wage-bearing outcomes yet) so the chart never divides by
   // zero or renders blank without explanation.
@@ -58,12 +64,14 @@ export function WageProgressionChart({ data = mockWageProgression }: { data?: Wa
           <div>
             <div className="flex items-center gap-2">
               <CardTitle>Post-Placement Wage Progression</CardTitle>
-              <Badge variant="default" className="text-[10px] px-2 py-0.2">
-                Live Cohort Trend
-              </Badge>
+              {badgeText && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500/30 bg-amber-500/10 text-amber-500 font-medium">
+                  {badgeText}
+                </Badge>
+              )}
             </div>
             <CardDescription className="mt-0.5">
-              Longitudinal median monthly wage trajectory across verified candidates
+              Longitudinal median monthly wage trajectory across verified pilot candidates (Not statewide estimate)
             </CardDescription>
           </div>
 

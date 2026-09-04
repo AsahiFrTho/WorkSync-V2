@@ -8,7 +8,7 @@ export async function POST() {
         const trainee = await Trainee.findOneAndUpdate(
             { traineeId: "KP-0001" },
             {
-                name: "Rahul Pawar",
+                name: "Trainee KP-0001",
                 district: "Pune",
                 course: "Electrician",
                 status: "employed",

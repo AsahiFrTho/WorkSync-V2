@@ -99,7 +99,7 @@ const ROLE_DOSSIERS: RoleDossier[] = [
   },
   {
     id: 'trainee',
-    name: 'Rahul Pawar',
+    name: 'Trainee KP-0001',
     title: 'Trainee ID: KP-0001 (Electrician)',
     badgeText: 'Outcome Passport',
     organization: 'Yashaswi Skill Academy, Pune',

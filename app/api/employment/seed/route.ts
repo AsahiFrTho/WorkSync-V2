@@ -12,11 +12,11 @@ export async function POST() {
       return copy;
     };
 
-    // 1. Ensure Trainee 1 (Rahul Pawar - KP-0001) exists
+    // 1. Ensure Trainee 1 (Trainee KP-0001 - KP-0001) exists
     const trainee1 = await Trainee.findOneAndUpdate(
       { traineeId: "KP-0001" },
       {
-        name: "Rahul Pawar",
+        name: "Trainee KP-0001",
         district: "Pune",
         course: "Electrician",
         status: "employed",
@@ -115,7 +115,7 @@ export async function POST() {
     const startDate2 = new Date("2024-05-15");
     const startDate3 = new Date("2024-05-01");
 
-    // Record 1: Verified Employment (Rahul Pawar)
+    // Record 1: Verified Employment (Trainee KP-0001)
     const record1 = await EmploymentRecord.findOneAndUpdate(
       { traineeId: "KP-0001", isCurrent: true },
       {
