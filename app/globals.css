@@ -182,7 +182,7 @@
     font-size: 2.25rem;
   }
   .stat-tile-compact .stat-tile-caption {
-    display: none;
+    display: block;
   }
   .stat-tile-compact .stat-tile-inline-trend {
     display: inline-flex;

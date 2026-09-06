@@ -484,7 +484,9 @@ export const getSkillGapInsights = (): SkillGapInsight[] => tradeSeed.map((cours
   const cohortPlacementRate = Math.round((trainees.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained').length / trainees.length) * 100)
   const placementRate = Math.round((placed.length / cohort.length) * 100)
   const cohortAverageWage = Math.round(trainees.filter((trainee) => trainee.monthlyWage > 0).reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, trainees.filter((trainee) => trainee.monthlyWage > 0).length))
-  return { course, reportCount: reports.length, highSeverityReports, placementRate, averageWage, cohortPlacementRate, cohortAverageWage, signal: course === 'Electrician' ? 'decoy' : highSeverityReports > 0 ? 'harmful' : 'healthy' }
+  const placementDelta = placementRate - cohortPlacementRate
+  const signal = course === 'Electrician' ? 'decoy' : reports.length < 8 ? 'healthy' : highSeverityReports >= 6 && placementDelta <= -10 ? 'harmful' : 'healthy'
+  return { course, reportCount: reports.length, highSeverityReports, placementRate, averageWage, cohortPlacementRate, cohortAverageWage, signal }
 })
 
 export const getTraineePassport = (traineeId: string): TraineePassport | undefined => {
@@ -507,7 +509,14 @@ export const validateMockData = () => {
     const firstOutcome = outcomeEvents.find((event) => event.traineeId === trainee.traineeId)
     if (trainee.trainingPeriod.endDate > trainee.certificate.issueDate) violations.push(`${trainee.traineeId}: certification before training end`)
     if (firstOutcome && trainee.certificate.issueDate > firstOutcome.eventDate) violations.push(`${trainee.traineeId}: outcome before certification`)
-    for (const event of outcomeEvents.filter((item) => item.traineeId === trainee.traineeId)) {
+    const traineeOutcomes = outcomeEvents.filter((item) => item.traineeId === trainee.traineeId)
+    const placed = traineeOutcomes.length > 0
+    const verified = seededEmployerVerifications.some((item) => item.traineeId === trainee.traineeId && item.verificationStatus === 'verified')
+    const lifecycleComplete = [trainee.status !== 'enrolled', trainee.status !== 'enrolled' && trainee.status !== 'completed', placed, placed && verified, placed && verified && traineeOutcomes.some((event) => event.outcomeType === 'wage_employment'), placed && verified && traineeOutcomes.some((event) => event.outcomeType === 'wage_update')]
+    for (let step = 1; step < lifecycleComplete.length; step += 1) {
+      if (lifecycleComplete[step] && !lifecycleComplete[step - 1]) violations.push(`${trainee.traineeId}: lifecycle step ${step} complete before prior step`)
+    }
+    for (const event of traineeOutcomes) {
       if (event.outcomeType === 'wage_update' && firstOutcome && event.eventDate <= firstOutcome.eventDate) violations.push(`${trainee.traineeId}: wage update before placement`)
     }
   }

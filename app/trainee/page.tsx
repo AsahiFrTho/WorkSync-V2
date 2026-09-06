@@ -11,7 +11,12 @@ import { CHART_SEMANTIC, CHART_SERIES } from '@/theme'
 const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value)
 const dates = (value?: string) => value ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value)) : 'Date not recorded'
 const lifecycle = ['Train', 'Certify', 'Place', 'Verify', 'Retain', 'Progress']
-const lifecycleFor = (outcomes: OutcomeEvent[], verified: boolean) => [true, true, outcomes.length > 0, verified, outcomes.some((event) => event.outcomeType === 'wage_employment'), outcomes.some((event) => event.outcomeType === 'wage_update')]
+const lifecycleFor = (outcomes: OutcomeEvent[], verified: boolean) => {
+  const placed = outcomes.length > 0
+  const retained = placed && verified && outcomes.some((event) => event.outcomeType === 'wage_employment')
+  const progressed = retained && outcomes.some((event) => event.outcomeType === 'wage_update')
+  return [true, true, placed, verified && placed, retained, progressed]
+}
 
 export default function TraineePage() {
   const [traineeId, setTraineeId] = useState('KP-0001')
