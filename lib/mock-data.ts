@@ -433,10 +433,15 @@ export const skillGapReports: SkillGapReport[] = trainees.flatMap((trainee, inde
   }))
 })
 
+export const getAverageMonthlyWage = (): number => {
+  const wageRecords = trainees.filter((trainee) => trainee.monthlyWage > 0)
+  return Math.round(wageRecords.reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, wageRecords.length))
+}
+
 export const getKpis = (): Kpi[] => {
   const employed = trainees.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained').length
   const retained = trainees.filter((trainee) => trainee.status === 'retained').length
-  const averageWage = Math.round(trainees.filter((trainee) => trainee.monthlyWage > 0).reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, trainees.filter((trainee) => trainee.monthlyWage > 0).length))
+  const averageWage = getAverageMonthlyWage()
   return [
     { label: 'Trainees enrolled', value: trainees.length, drillInTarget: '/trainee?status=enrolled' },
     { label: 'Placement rate', value: Math.round((employed / trainees.length) * 100), unit: '%', drillInTarget: '/dashboard?focus=employed' },
@@ -450,18 +455,18 @@ export const getFunnel = (): FunnelStage[] => {
   return [
     { stage: 'Enrolled', value: trainees.length },
     { stage: 'Completed', value: count((trainee) => trainee.status !== 'enrolled') },
-    { stage: 'Certified', value: count((trainee) => Boolean(trainee.certificate)) },
+    { stage: 'Certified', value: count((trainee) => ['certified', 'employed', 'retained'].includes(trainee.status)) },
     { stage: 'Employed', value: count((trainee) => trainee.status === 'employed' || trainee.status === 'retained') },
     { stage: 'Retained', value: count((trainee) => trainee.status === 'retained') },
   ]
 }
 
 export const getWageSeries = (): WageSeriesPoint[] => {
-  const wageEvents = outcomeEvents.filter((event) => event.outcomeType === 'wage_update' && event.monthlyWage)
-  return ['Month 0', 'Month 2', 'Month 4', 'Month 6', 'Month 9', 'Month 12'].map((month, index) => ({
-    month,
-    wage: Math.round((wageEvents.reduce((sum, event) => sum + (event.monthlyWage || 0), 0) / Math.max(1, wageEvents.length)) * (0.84 + index * 0.035)),
-  }))
+  const wageEvents = outcomeEvents
+    .filter((event) => event.outcomeType === 'wage_update' && event.monthlyWage)
+    .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+  const checkpoints = [0, 3, 7, 11, 15, wageEvents.length - 1].map((index) => wageEvents[Math.max(0, Math.min(index, wageEvents.length - 1))])
+  return checkpoints.map((event, index) => ({ month: ['Month 0', 'Month 2', 'Month 4', 'Month 6', 'Month 9', 'Month 12'][index], wage: event.monthlyWage ?? 0 }))
 }
 
 export const getSkillGapInsights = (): SkillGapInsight[] => tradeSeed.map((course) => {
@@ -484,6 +489,10 @@ export const getTraineePassport = (traineeId: string): TraineePassport | undefin
 
 export const validateMockData = () => {
   const violations: string[] = []
+  const funnel = getFunnel()
+  for (let index = 1; index < funnel.length; index += 1) {
+    if (funnel[index].value > funnel[index - 1].value) violations.push(`Funnel violation: ${funnel[index].stage} exceeds ${funnel[index - 1].stage}`)
+  }
   for (const trainee of trainees) {
     const firstOutcome = outcomeEvents.find((event) => event.traineeId === trainee.traineeId)
     if (trainee.trainingPeriod.endDate > trainee.certificate.issueDate) violations.push(`${trainee.traineeId}: certification before training end`)
