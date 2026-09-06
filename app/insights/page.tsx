@@ -1,101 +1,27 @@
-import { Info, Sparkles, Compass, Lightbulb, CheckCircle2, ArrowRight } from 'lucide-react'
+'use client'
+
+import { Sparkles } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { PageHeader } from '@/components/page-header'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { InsightCard } from '@/components/insights/insight-card'
-import { aiInsights } from '@/lib/mock-data'
+import { DataState } from '@/components/data-state'
+import { useProgramData } from '@/lib/use-program-data'
+import { generateCurriculumInsights } from '@/lib/compute'
 
 export default function InsightsPage() {
-  return (
-    <AppShell>
-      <PageHeader
-        eyebrow="MSSDS • State Skilling Intelligence"
-        title="AI-Assisted Programme & Policy Insights"
-        description="A preview of the predictive intelligence layer: correlating longitudinal trainee outcomes, non-placement root causes, and live employer demand to recommend high-impact curriculum interventions."
-      />
-
-      <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        {/* Prototype Disclaimer Banner */}
-        <div className="rounded-xl border border-border bg-card p-4.5">
-          <div className="flex items-start gap-3">
-            <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-            <div className="text-xs sm:text-sm leading-relaxed text-foreground">
-              <p className="font-bold text-foreground">
-                AI Intelligence & Decision Support Layer (Evaluation Environment)
-              </p>
-              <p className="mt-1 font-medium text-muted-foreground">
-                These insight signals are grounded in simulated cross-district outcome metrics and employer vacancy signals.
-                AI recommendations serve as decision-support alerts for state directors and VTP curriculum planners, completely decoupled from verified registry evidence.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 4-Step Analytical Process Strip */}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div className="flex items-center gap-2">
-                <span className="flex size-7 items-center justify-center rounded-lg border border-border bg-muted text-primary">
-                  <Compass className="size-4" aria-hidden="true" />
-                </span>
-                <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">
-                  Autonomous Signal Detection Lifecycle
-                </h2>
-              </div>
-              <Badge variant="default" className="text-[10px] font-bold">
-                Pattern Recognition
-              </Badge>
-            </div>
-
-            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                {
-                  n: '01',
-                  t: 'Read Outcome Signals',
-                  d: 'Ingests batch outcomes, non-placement reasons, and active employer vacancy reports.',
-                },
-                {
-                  n: '02',
-                  t: 'Detect Gaps & Deltas',
-                  d: 'Correlates recurring trade skill gaps against district training coverage capacities.',
-                },
-                {
-                  n: '03',
-                  t: 'Synthesize Evidence',
-                  d: 'Summarises diagnostic patterns and root causes into concise narrative briefings for officials.',
-                },
-                {
-                  n: '04',
-                  t: 'Recommend Actions',
-                  d: 'Proposes actionable curriculum modules, hospital rotations, or industry apprenticeships.',
-                },
-              ].map((s) => (
-                <li
-                  key={s.n}
-                  className="flex flex-col justify-between gap-1.5 rounded-lg border border-border bg-muted/20 p-3.5 shadow-2xs"
-                >
-                  <div>
-                    <span className="text-xs font-medium text-primary tracking-wider">
-                      STAGE {s.n}
-                    </span>
-                    <h3 className="text-xs sm:text-sm font-bold text-foreground mt-0.5">{s.t}</h3>
-                    <p className="text-xs font-medium text-muted-foreground mt-1 leading-relaxed">{s.d}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-
-        {/* Insight Cards Grid */}
-        <section aria-label="Detected Policy Insights" className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {aiInsights.map((insight) => (
-            <InsightCard key={insight.id} insight={insight} />
-          ))}
-        </section>
-      </div>
-    </AppShell>
-  )
+  const { db, loading, error, seeded, refresh, seed } = useProgramData()
+  const insights = generateCurriculumInsights(db).map((item, index) => ({
+    id: `${item.course}-${index}`,
+    priority: item.severity === 'high' ? 'High' : item.severity === 'medium' ? 'Medium' : 'Low',
+    district: 'Programme-wide',
+    title: `${item.course}: ${item.topSkillGap} is linked to an outcome gap`,
+    narrative: item.recommendedFix,
+    skillGap: item.topSkillGap,
+    employerDemand: item.severity === 'high' ? 'High' : item.severity === 'medium' ? 'Medium' : 'Low',
+    trainingCoverage: item.employmentRateDelta < 0 ? 'Low' : 'Medium',
+    action: item.recommendedFix,
+    confidence: Math.min(95, 50 + item.reportCount * 8),
+  })) as Parameters<typeof InsightCard>[0]['insight'][]
+  return <AppShell><PageHeader eyebrow="MSSDS • State Skilling Intelligence" title="Evidence-based programme insights" description="Signals are computed from live learner, skill-gap, and outcome records." /><div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8"><DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}><div className="rounded-xl border border-border bg-card p-4"><div className="flex items-start gap-3"><Sparkles className="mt-0.5 size-5 shrink-0 text-primary" /><div><p className="font-bold text-foreground">Live decision-support signals</p><p className="mt-1 text-sm leading-relaxed text-muted-foreground">Only courses with enough live learner and report evidence are shown. These are recommendations, not verified registry facts.</p></div><Badge variant="default" className="ml-auto text-[10px]">LIVE</Badge></div></div>{insights.length ? <section aria-label="Detected policy insights" className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{insights.map((insight) => <InsightCard key={insight.id} insight={insight} />)}</section> : <div className="rounded-xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">No evidence-backed curriculum insights are available for the current cohort.</div>}</DataState></div></AppShell>
 }

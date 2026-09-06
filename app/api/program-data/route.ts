@@ -51,12 +51,11 @@ export async function GET() {
       skillGaps,
       settings,
     });
-  } catch {
-    // Graceful offline / evaluation fallback
-    const fallback = getFallbackProgramData();
-    return Response.json({
-      success: true,
-      ...fallback,
-    });
+  } catch (error) {
+    console.error("[program-data] failed to load", error);
+    return Response.json(
+      { success: false, error: "Could not load programme data" },
+      { status: 500 }
+    );
   }
-}
+}

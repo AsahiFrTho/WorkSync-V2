@@ -553,27 +553,50 @@ export function placementTrend(db: ComputeDB, filters: Partial<Filters> = {}) {
   return keys.map((k) => ({ month: monthLabel(k), placements: counts[k] }));
 }
 
-export function wageProgressionSeries(db: ComputeDB, filters: Partial<Filters> = {}) {
-  const learners = applyFilters(db, filters);
-  const ids = new Set(learners.map((l) => l.traineeId));
-  const keys = lastNMonths(15);
-  const buckets: Record<string, number[]> = Object.fromEntries(keys.map((k) => [k, []]));
-  db.outcomes.forEach((o) => {
-    const w = o.monthlyWage || o.selfEmploymentIncome;
-    if (w && ids.has(o.traineeId)) {
-      const k = monthKey(o.eventDate);
-      if (buckets[k]) buckets[k].push(w);
-    }
+export interface CohortWagePoint {
+  month: number;
+  wage: number;
+  n: number;
+}
+
+/**
+ * Computes wage progression on each learner's own placement-relative clock.
+ * A learner contributes their latest recorded wage at or before each checkpoint;
+ * sparse checkpoints are retained only when the configured minimum sample exists.
+ */
+export function cohortWageSeries(
+  db: ComputeDB,
+  filters: Partial<Filters> = {},
+  minSample = 1,
+  checkpoints = [0, 3, 6, 9, 12]
+): CohortWagePoint[] {
+  const learners = applyFilters(db, filters).filter((learner) => Boolean(firstPlacement(db, learner.traineeId)));
+  const points = checkpoints.map((month) => {
+    const wages: number[] = [];
+    learners.forEach((learner) => {
+      const placement = firstPlacement(db, learner.traineeId);
+      if (!placement) return;
+      const checkpointDate = addMonths(placement.eventDate, month);
+      const wageEvents = eventsFor(db, learner.traineeId)
+        .filter((event) => event.eventDate <= checkpointDate && (event.monthlyWage || event.selfEmploymentIncome))
+        .sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+      const latest = wageEvents[wageEvents.length - 1];
+      const wage = latest?.monthlyWage || latest?.selfEmploymentIncome;
+      if (wage && wage > 0) wages.push(wage);
+    });
+    return wages.length >= minSample
+      ? { month, wage: Math.round(wages.reduce((sum, wage) => sum + wage, 0) / wages.length), n: wages.length }
+      : null;
   });
-  return keys
-    .map((k) => ({
-      month: monthLabel(k),
-      wage: buckets[k].length
-        ? Math.round(buckets[k].reduce((a, b) => a + b, 0) / buckets[k].length)
-        : null,
-      n: buckets[k].length,
-    }))
-    .filter((d) => d.wage !== null);
+  return points.filter((point): point is CohortWagePoint => point !== null);
+}
+
+export function wageProgressionSeries(db: ComputeDB, filters: Partial<Filters> = {}) {
+  return cohortWageSeries(db, filters).map((point) => ({
+    month: `${point.month} mo`,
+    wage: point.wage,
+    n: point.n,
+  }));
 }
 
 export function retentionSeries(db: ComputeDB, filters: Partial<Filters> = {}) {
