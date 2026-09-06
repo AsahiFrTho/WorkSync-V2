@@ -285,3 +285,210 @@ export const inr = (n: number) =>
 
 export const compact = (n: number) =>
   new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+
+// ---------- WorkSync API-shaped demonstration dataset ----------
+// These records intentionally use the same serializable shapes as lib/types.ts.
+// Existing domain disagreement: SkillGapReport.courseId is optional in the
+// existing client type/model, while the requested API shape marks it required;
+// every seeded report below supplies it, without widening the shared type.
+
+import type {
+  ConsentRecord as ApiConsentRecord,
+  EmployerVerification as ApiEmployerVerification,
+  OutcomeEvent as ApiOutcomeEvent,
+  SkillGapReport as ApiSkillGapReport,
+  TraineeLite as ApiTrainee,
+} from '@/lib/types'
+
+export type Trainee = Omit<ApiTrainee, '_id' | 'status' | 'monthlyWage' | 'trainingPeriod' | 'skills' | 'certificate'> & {
+  status: 'enrolled' | 'completed' | 'certified' | 'employed' | 'retained'
+  monthlyWage: number
+  trainingPeriod: { startDate: string; endDate: string; hours: number }
+  skills: string[]
+  certificate: { certificateId: string; nsqfLevel: number; issueDate: string }
+}
+export type ConsentRecord = ApiConsentRecord
+export type OutcomeEvent = ApiOutcomeEvent
+export type EmployerVerification = ApiEmployerVerification
+export type SkillGapReport = ApiSkillGapReport
+
+export type FunnelStage = { stage: 'Enrolled' | 'Completed' | 'Certified' | 'Employed' | 'Retained'; value: number }
+export type Kpi = { label: string; value: number; unit?: string; drillInTarget: string }
+export type WageSeriesPoint = { month: string; wage: number }
+export type SkillGapInsight = {
+  course: string
+  reportCount: number
+  highSeverityReports: number
+  placementRate: number
+  averageWage: number
+  cohortPlacementRate: number
+  cohortAverageWage: number
+  signal: 'harmful' | 'healthy' | 'decoy'
+}
+export type TraineePassport = {
+  trainee: Trainee
+  consent: ConsentRecord
+  outcomes: OutcomeEvent[]
+  verification: EmployerVerification
+  skillGaps: SkillGapReport[]
+}
+
+const districtSeed = ['Pune', 'Nagpur', 'Nashik', 'Aurangabad', 'Amravati', 'Solapur', 'Kolhapur', 'Thane', 'Latur', 'Jalgaon', 'Satara', 'Ratnagiri'] as const
+const tradeSeed = ['CNC Operation', 'Solar Installation', 'Industrial Automation/PLC', 'EV Maintenance', 'Healthcare Support', 'Digital Tools', 'Tailoring', 'Electrician'] as const
+const names = ['Aarav Patil', 'Meera Shinde', 'Rohan Jadhav', 'Sneha Pawar', 'Vikram Kadam', 'Ananya Deshmukh', 'Imran Shaikh', 'Pooja Gaikwad', 'Sagar Chavan', 'Kavita More', 'Nikhil Bhosale', 'Ayesha Khan']
+const providers = ['Maharashtra Skill Mission', 'Yashaswi Skill Academy', 'Sahyadri Vocational Institute', 'Deccan Technical Centre']
+const wageByTrade: Record<string, number> = {
+  'CNC Operation': 25800,
+  'Industrial Automation/PLC': 28600,
+  'EV Maintenance': 21800,
+  'Solar Installation': 18400,
+  'Healthcare Support': 15600,
+  Electrician: 14500,
+  'Digital Tools': 11800,
+  Tailoring: 9800,
+}
+const skillsByTrade: Record<string, string[]> = {
+  'CNC Operation': ['CNC programming', 'precision measurement', 'machine safety'],
+  'Solar Installation': ['PV installation', 'electrical safety', 'site surveying'],
+  'Industrial Automation/PLC': ['PLC programming', 'control systems', 'fault diagnosis'],
+  'EV Maintenance': ['battery diagnostics', 'motor systems', 'high-voltage safety'],
+  'Healthcare Support': ['patient care', 'vital signs', 'clinical hygiene'],
+  'Digital Tools': ['spreadsheets', 'digital records', 'online collaboration'],
+  Tailoring: ['industrial stitching', 'pattern cutting', 'quality control'],
+  Electrician: ['wiring and fittings', 'circuit diagnostics', 'safety compliance'],
+}
+const iso = (year: number, month: number, day: number) => `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+const placementTypes: OutcomeEvent['outcomeType'][] = ['wage_employment', 'self_employment', 'apprenticeship', 'higher_education', 'job_change', 'unemployed', 'not_placed', 'dropout']
+
+export const trainees: Trainee[] = Array.from({ length: 48 }, (_, index) => {
+  const district = districtSeed[index % districtSeed.length]
+  const course = tradeSeed[index % tradeSeed.length]
+  const startMonth = (index % 6) + 1
+  const startDate = iso(2023, startMonth, (index % 20) + 1)
+  const endDate = iso(2023, startMonth + 3, (index % 20) + 1)
+  const certified = index % 11 !== 0
+  const employed = certified && index % 7 !== 0
+  const retained = employed && index % 9 !== 0
+  const status: Trainee['status'] = retained ? 'retained' : employed ? 'employed' : certified ? 'certified' : index % 3 === 0 ? 'completed' : 'enrolled'
+  const wage = Math.min(32000, wageByTrade[course] + (index % 5) * 650 - (course === 'CNC Operation' || course === 'Industrial Automation/PLC' ? index % 3 * 450 : 0))
+  return {
+    traineeId: `KP-${String(index + 1).padStart(4, '0')}`,
+    name: names[index % names.length],
+    district,
+    course,
+    trainingProvider: providers[index % providers.length],
+    monthlyWage: employed ? wage : 0,
+    status,
+    trainingPeriod: { startDate, endDate, hours: 360 + (index % 4) * 40 },
+    skills: skillsByTrade[course],
+    certificate: { certificateId: `CERT-MH-${String(index + 1).padStart(4, '0')}`, nsqfLevel: course === 'Digital Tools' || course === 'Tailoring' ? 3 : 4, issueDate: iso(2023, startMonth + 4, (index % 20) + 1) },
+  }
+})
+
+export const consentRecords: ConsentRecord[] = trainees.map((trainee, index) => ({
+  traineeId: trainee.traineeId,
+  consentStatus: index < 40 ? 'active' : (['expired', 'revoked', 'missing'] as const)[index % 3],
+  consentDate: index % 3 === 2 ? undefined : iso(2023, 2 + (index % 8), 5 + (index % 20)),
+  consentMethod: index % 2 ? 'assisted_digital' : 'mobile_app',
+  consentPurpose: ['Outcome tracking', 'Employer verification'],
+}))
+
+export const outcomeEvents: OutcomeEvent[] = trainees.flatMap((trainee, index) => {
+  const placementDate = iso(2023, 10, 5 + (index % 20))
+  const type = placementTypes[index % placementTypes.length]
+  const base: OutcomeEvent = {
+    traineeId: trainee.traineeId,
+    outcomeType: type,
+    eventDate: placementDate,
+    employerName: type === 'wage_employment' || type === 'job_change' ? ['Bharat Engineering', 'Sahyadri Care', 'Konkan Solar Works'][index % 3] : undefined,
+    monthlyWage: trainee.monthlyWage || undefined,
+    skillsUsed: trainee.skills.slice(0, 2),
+    verifiedStatus: index % 10 === 0 ? 'pending' : index % 13 === 0 ? 'partially_verified' : index % 17 === 0 ? 'rejected' : index % 19 === 0 ? 'unreachable' : 'verified',
+  }
+  const events = [base]
+  if (index < 20) events.push({ ...base, outcomeType: 'wage_update', eventDate: iso(2024, 1 + (index % 4), 10 + (index % 15)), monthlyWage: Math.min(32000, (trainee.monthlyWage || wageByTrade[trainee.course]) + 1800 + (index % 4) * 500), verifiedStatus: 'verified' })
+  return events
+})
+
+export const seededEmployerVerifications: EmployerVerification[] = trainees.map((trainee, index) => ({
+  traineeId: trainee.traineeId,
+  employerName: ['Bharat Engineering', 'Sahyadri Care', 'Konkan Solar Works'][index % 3],
+  verificationStatus: index % 17 === 0 ? 'rejected' : index % 13 === 0 ? 'partially_verified' : index % 11 === 0 ? 'employer_unreachable' : index % 7 === 0 ? 'pending' : 'verified',
+  confidenceScore: index % 7 === 0 ? 0.58 : 0.86 + (index % 10) / 100,
+  verificationMethod: index % 3 === 0 ? 'employer_portal' : 'phone_call',
+}))
+
+export const skillGapReports: SkillGapReport[] = trainees.flatMap((trainee, index) => {
+  const harmful = trainee.course === 'CNC Operation' || trainee.course === 'Solar Installation'
+  const decoy = trainee.course === 'Electrician'
+  const count = harmful ? 2 : decoy ? 2 : index % 3 === 0 ? 1 : 0
+  return Array.from({ length: count }, (_, reportIndex) => ({
+    traineeId: trainee.traineeId,
+    skillName: trainee.skills[reportIndex % trainee.skills.length],
+    reportedBy: (reportIndex % 2 ? 'learner' : 'employer') as SkillGapReport['reportedBy'],
+    severity: (harmful ? (reportIndex === 0 ? 'high' : 'medium') : decoy ? 'low' : 'low') as SkillGapReport['severity'],
+    courseId: trainee.course,
+  }))
+})
+
+export const getKpis = (): Kpi[] => {
+  const employed = trainees.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained').length
+  const retained = trainees.filter((trainee) => trainee.status === 'retained').length
+  const averageWage = Math.round(trainees.filter((trainee) => trainee.monthlyWage > 0).reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, trainees.filter((trainee) => trainee.monthlyWage > 0).length))
+  return [
+    { label: 'Trainees enrolled', value: trainees.length, drillInTarget: '/trainee?status=enrolled' },
+    { label: 'Placement rate', value: Math.round((employed / trainees.length) * 100), unit: '%', drillInTarget: '/dashboard?focus=employed' },
+    { label: 'Retention rate', value: Math.round((retained / trainees.length) * 100), unit: '%', drillInTarget: '/dashboard?focus=retained' },
+    { label: 'Average monthly wage', value: averageWage, unit: 'INR', drillInTarget: '/dashboard?focus=wage' },
+  ]
+}
+
+export const getFunnel = (): FunnelStage[] => {
+  const count = (predicate: (trainee: Trainee) => boolean) => trainees.filter(predicate).length
+  return [
+    { stage: 'Enrolled', value: trainees.length },
+    { stage: 'Completed', value: count((trainee) => trainee.status !== 'enrolled') },
+    { stage: 'Certified', value: count((trainee) => Boolean(trainee.certificate)) },
+    { stage: 'Employed', value: count((trainee) => trainee.status === 'employed' || trainee.status === 'retained') },
+    { stage: 'Retained', value: count((trainee) => trainee.status === 'retained') },
+  ]
+}
+
+export const getWageSeries = (): WageSeriesPoint[] => {
+  const wageEvents = outcomeEvents.filter((event) => event.outcomeType === 'wage_update' && event.monthlyWage)
+  return ['Month 0', 'Month 2', 'Month 4', 'Month 6', 'Month 9', 'Month 12'].map((month, index) => ({
+    month,
+    wage: Math.round((wageEvents.reduce((sum, event) => sum + (event.monthlyWage || 0), 0) / Math.max(1, wageEvents.length)) * (0.84 + index * 0.035)),
+  }))
+}
+
+export const getSkillGapInsights = (): SkillGapInsight[] => tradeSeed.map((course) => {
+  const cohort = trainees.filter((trainee) => trainee.course === course)
+  const placed = cohort.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained')
+  const reports = skillGapReports.filter((report) => report.courseId === course)
+  const highSeverityReports = reports.filter((report) => report.severity === 'high').length
+  const averageWage = Math.round(placed.reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, placed.length))
+  const cohortPlacementRate = Math.round((trainees.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained').length / trainees.length) * 100)
+  const placementRate = Math.round((placed.length / cohort.length) * 100)
+  const cohortAverageWage = Math.round(trainees.filter((trainee) => trainee.monthlyWage > 0).reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, trainees.filter((trainee) => trainee.monthlyWage > 0).length))
+  return { course, reportCount: reports.length, highSeverityReports, placementRate, averageWage, cohortPlacementRate, cohortAverageWage, signal: course === 'Electrician' ? 'decoy' : highSeverityReports > 0 ? 'harmful' : 'healthy' }
+})
+
+export const getTraineePassport = (traineeId: string): TraineePassport | undefined => {
+  const trainee = trainees.find((item) => item.traineeId === traineeId)
+  if (!trainee) return undefined
+  return { trainee, consent: consentRecords.find((item) => item.traineeId === traineeId)!, outcomes: outcomeEvents.filter((item) => item.traineeId === traineeId), verification: seededEmployerVerifications.find((item) => item.traineeId === traineeId)!, skillGaps: skillGapReports.filter((item) => item.traineeId === traineeId) }
+}
+
+export const validateMockData = () => {
+  const violations: string[] = []
+  for (const trainee of trainees) {
+    const firstOutcome = outcomeEvents.find((event) => event.traineeId === trainee.traineeId)
+    if (trainee.trainingPeriod.endDate > trainee.certificate.issueDate) violations.push(`${trainee.traineeId}: certification before training end`)
+    if (firstOutcome && trainee.certificate.issueDate > firstOutcome.eventDate) violations.push(`${trainee.traineeId}: outcome before certification`)
+    for (const event of outcomeEvents.filter((item) => item.traineeId === trainee.traineeId)) {
+      if (event.outcomeType === 'wage_update' && firstOutcome && event.eventDate <= firstOutcome.eventDate) violations.push(`${trainee.traineeId}: wage update before placement`)
+    }
+  }
+  return violations
+}
