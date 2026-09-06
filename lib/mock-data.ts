@@ -367,10 +367,12 @@ export const trainees: Trainee[] = Array.from({ length: 48 }, (_, index) => {
   const startDate = iso(2023, startMonth, (index % 20) + 1)
   const endDate = iso(2023, startMonth + 3, (index % 20) + 1)
   const certified = index % 11 !== 0
-  const employed = certified && index % 7 !== 0
+  const underperformingTrade = course === 'CNC Operation' || course === 'Solar Installation'
+  const employed = certified && (underperformingTrade ? index % 3 === 1 : index % 7 !== 0)
   const retained = employed && index % 9 !== 0
   const status: Trainee['status'] = retained ? 'retained' : employed ? 'employed' : certified ? 'certified' : index % 3 === 0 ? 'completed' : 'enrolled'
-  const wage = Math.min(32000, wageByTrade[course] + (index % 5) * 650 - (course === 'CNC Operation' || course === 'Industrial Automation/PLC' ? index % 3 * 450 : 0))
+  const wageBase = underperformingTrade ? 11200 : wageByTrade[course]
+  const wage = Math.min(32000, wageBase + (index % 5) * 650 - (course === 'CNC Operation' || course === 'Industrial Automation/PLC' ? index % 3 * 450 : 0))
   return {
     traineeId: `KP-${String(index + 1).padStart(4, '0')}`,
     name: names[index % names.length],

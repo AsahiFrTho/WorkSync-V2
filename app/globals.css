@@ -178,6 +178,32 @@
   .transition-ui {
     transition: all 0.2s ease-in-out;
   }
+  .stat-tile-compact .stat-tile-value {
+    font-size: 2.25rem;
+  }
+  .stat-tile-compact .stat-tile-caption {
+    display: none;
+  }
+  .stat-tile-compact .stat-tile-inline-trend {
+    display: inline-flex;
+  }
+  .stat-tile-compact + .compact-stat-badge {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .stat-tile-comfortable .stat-tile-value {
+    font-size: 2.25rem;
+  }
+  .stat-tile-comfortable .stat-tile-caption {
+    display: none;
+  }
+  .stat-tile-comfortable .stat-tile-inline-trend {
+    display: inline-flex;
+  }
+  .stat-tile-comfortable + .compact-stat-badge {
+    display: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   *,
