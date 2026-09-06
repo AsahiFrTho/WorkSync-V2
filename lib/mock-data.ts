@@ -343,7 +343,7 @@ const wageByTrade: Record<string, number> = {
   'EV Maintenance': 21800,
   'Solar Installation': 18400,
   'Healthcare Support': 15600,
-  Electrician: 14500,
+  Electrician: 19000,
   'Digital Tools': 11800,
   Tailoring: 9800,
 }
