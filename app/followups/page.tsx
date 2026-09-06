@@ -6,7 +6,6 @@ import {
   PhoneCall,
   PhoneOff,
   CalendarClock,
-  BellRing,
   Smartphone,
   Mail,
   MessageCircle,
@@ -51,15 +50,6 @@ const CHANNEL_ICON: Record<string, typeof Phone> = {
   IVR: Zap,
   Email: Mail,
   'Field visit': PhoneCall,
-}
-
-const CHANNEL_TONE: Record<string, string> = {
-  Call: 'sky',
-  SMS: 'violet',
-  WhatsApp: 'emerald',
-  IVR: 'amber',
-  Email: 'indigo',
-  'Field visit': 'teal',
 }
 
 function ContactModal({
@@ -309,34 +299,6 @@ export default function FollowUpsPage() {
   ]
   const list = buckets[tab as keyof typeof buckets] || []
 
-  // Simulated multi-channel reminder feed built from the follow-up queue,
-  // mirroring the Source's automated reminder simulation.
-  const reminders = useMemo(() => {
-    const channels = db.settings?.notificationRules?.channels?.length
-      ? db.settings.notificationRules.channels
-      : ['SMS', 'WhatsApp', 'Email', 'IVR']
-    const rows: { id: string; traineeId: string; channel: string; sendDate: string; status: string }[] = []
-    db.followUps
-      .slice()
-      .sort((a, b) => (b.dueDate || '').localeCompare(a.dueDate || ''))
-      .forEach((f, i) => {
-        const ch = channels[i % channels.length]
-        const sendDate = (() => {
-          const d = new Date(f.dueDate + 'T12:00:00Z')
-          d.setUTCDate(d.getUTCDate() - 1)
-          return d.toISOString().slice(0, 10)
-        })()
-        rows.push({
-          id: `R-${f._id}`,
-          traineeId: f.traineeId,
-          channel: ch,
-          sendDate,
-          status: sendDate <= todayStr() ? 'sent' : 'scheduled',
-        })
-      })
-    return rows.slice(0, 8)
-  }, [db.followUps, db.settings])
-
   const markUnreachable = async (fu: FollowUp) => {
     setSaving(true)
     try {
@@ -387,6 +349,7 @@ export default function FollowUpsPage() {
       {node}
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
+          <div className="mb-4 rounded-control border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">This screen schedules and records attempts only. SMS and WhatsApp delivery are not wired, and no automated message is sent.</div>
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <Card>
@@ -428,44 +391,15 @@ export default function FollowUpsPage() {
             <div className="space-y-4">
               <Card>
                 <CardHeader className="border-b border-border pb-3.5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Automated reminders</CardTitle>
-                      <CardDescription className="mt-0.5">
-                        Simulated multi-channel nudges
-                      </CardDescription>
-                    </div>
-                    <Badge variant="neutral">simulated</Badge>
-                  </div>
+                  <CardTitle>Contact recording</CardTitle>
+                  <CardDescription className="mt-0.5">
+                    This screen schedules and records attempts only. SMS and WhatsApp delivery are not wired.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3 pt-4">
-                  {reminders.length === 0 && (
-                    <p className="text-xs text-muted-foreground">No scheduled reminders yet.</p>
-                  )}
-                  {reminders.map((r) => {
-                    const learner = db.learners.find((l) => l.traineeId === r.traineeId)
-                    const Icon = CHANNEL_ICON[r.channel] || Smartphone
-                    return (
-                      <div
-                        key={r.id}
-                        className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5"
-                      >
-                        <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs font-medium text-foreground">
-                            {learner ? displayName(learner) : r.traineeId} · {r.channel}
-                          </div>
-                          <div className="text-[10.5px] text-muted-foreground">
-                            {fmtDate(r.sendDate)} · {r.status}
-                          </div>
-                        </div>
-                        <ToneBadge tone={r.status === 'sent' ? 'emerald' : 'amber'}>
-                          <BellRing className="size-3" />
-                          {r.status}
-                        </ToneBadge>
-                      </div>
-                    )
-                  })}
+                <CardContent className="pt-4">
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Use the channel icons on each queue item to record the intended method. No automated message is sent from WorkSync.
+                  </p>
                 </CardContent>
               </Card>
 

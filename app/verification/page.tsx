@@ -22,7 +22,7 @@ import type { EmployerVerification } from '@/lib/types'
 const STATUS_TONE: Record<string, string> = {
   pending: 'sky',
   partially_verified: 'amber',
-  employer_unreachable: 'orange',
+  employer_unreachable: 'slate',
   verified: 'emerald',
   rejected: 'rose',
 }
@@ -84,6 +84,7 @@ export default function VerificationPage() {
               AUDIT CELL
             </span>
           </div>
+          <div className="mb-4 rounded-control border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Preview actions update the queue after save; no employer or external verification service is contacted from this screen.</div>
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-foreground">

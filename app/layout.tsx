@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist_Mono, Inter, Source_Serif_4 } from 'next/font/google'
+import { Geist_Mono, Inter, Noto_Sans_Devanagari, Source_Serif_4 } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/lib/theme-context'
 import { SessionProvider } from '@/lib/auth/session-context'
@@ -18,6 +18,11 @@ const sourceSerif = Source_Serif_4({
 const geistMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-geist-mono',
+})
+
+const devanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari'],
+  variable: '--font-devanagari',
 })
 
 export const metadata: Metadata = {
@@ -43,9 +48,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${sourceSerif.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${sourceSerif.variable} ${geistMono.variable} ${devanagari.variable} font-sans antialiased`}
       >
-        <script dangerouslySetInnerHTML={{ __html: `(() => { const key = 'worksync-theme'; const saved = localStorage.getItem(key); const theme = saved === 'light' || saved === 'dark' || saved === 'contrast' ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = theme; })()` }} />
         <ThemeProvider>
           <SessionProvider>
             {children}

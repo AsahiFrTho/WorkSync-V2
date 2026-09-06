@@ -175,6 +175,7 @@ export default function LearnersPage() {
       {node}
       <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <DataState loading={loading} error={error} seeded={seeded} onSeed={seed} onRetry={refresh}>
+          <div className="mb-4 rounded-control border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Preview actions save through the local operations layer and refresh this registry; no live stakeholder notification is sent.</div>
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-foreground">
@@ -308,8 +309,8 @@ export default function LearnersPage() {
                                   : latestVer.verificationStatus === 'partially_verified'
                                     ? 'amber'
                                     : latestVer.verificationStatus === 'employer_unreachable'
-                                      ? 'orange'
-                                      : 'sky'
+                                      ? 'slate'
+                                      : 'amber'
                             }
                           >
                             {latestVer.verificationStatus.replace(/_/g, ' ')}
