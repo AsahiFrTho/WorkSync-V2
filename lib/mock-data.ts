@@ -438,6 +438,12 @@ export const getAverageMonthlyWage = (): number => {
   return Math.round(wageRecords.reduce((sum, trainee) => sum + trainee.monthlyWage, 0) / Math.max(1, wageRecords.length))
 }
 
+export const getVerifiedEmployment = () => {
+  const placements = trainees.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained')
+  const verified = placements.filter((trainee) => Number(trainee.traineeId.slice(-2)) % 5 !== 0)
+  return { verified: verified.length, placements: placements.length, rate: Math.round(verified.length / Math.max(1, placements.length) * 100) }
+}
+
 export const getKpis = (): Kpi[] => {
   const employed = trainees.filter((trainee) => trainee.status === 'employed' || trainee.status === 'retained').length
   const retained = trainees.filter((trainee) => trainee.status === 'retained').length
@@ -491,7 +497,11 @@ export const validateMockData = () => {
   const violations: string[] = []
   const funnel = getFunnel()
   for (let index = 1; index < funnel.length; index += 1) {
-    if (funnel[index].value > funnel[index - 1].value) violations.push(`Funnel violation: ${funnel[index].stage} exceeds ${funnel[index - 1].stage}`)
+    if (funnel[index].value > funnel[index - 1].value) {
+      const violation = `Funnel violation: ${funnel[index].stage} exceeds ${funnel[index - 1].stage}`
+      violations.push(violation)
+      console.error(`[v0] ${violation}`)
+    }
   }
   for (const trainee of trainees) {
     const firstOutcome = outcomeEvents.find((event) => event.traineeId === trainee.traineeId)
