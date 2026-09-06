@@ -1,4 +1,5 @@
-﻿import type { LucideIcon } from 'lucide-react'
+﻿/** @deprecated — replaced by components/work-sync/StatTile. Existing imports: app/employer/page.tsx, app/dataquality/page.tsx. */
+import type { LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'

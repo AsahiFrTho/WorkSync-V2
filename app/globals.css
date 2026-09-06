@@ -4,6 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Source of truth for WorkSync semantic tokens; mirror JS chart values in theme.ts. */
 @theme inline {
   --font-sans: var(--font-geist), Arial, sans-serif;
   --font-serif: var(--font-source-serif), Georgia, serif;

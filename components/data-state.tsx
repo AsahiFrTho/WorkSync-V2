@@ -1,5 +1,6 @@
 'use client'
 
+/** @deprecated — replaced by components/work-sync/LoadingSkeleton and EmptyState. Existing imports: app/verification/page.tsx, app/followups/page.tsx, app/learners/page.tsx, app/dataquality/page.tsx, app/dashboard/page.tsx, app/learners/[id]/page.tsx, app/scorecard/page.tsx, app/settings/page.tsx, app/analytics/page.tsx. */
 import { Loader2, Database, RefreshCw, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'

@@ -1,5 +1,6 @@
 'use client'
 
+/** @deprecated — replaced by components/work-sync/FilterBar. Existing imports: app/skillgaps/page.tsx. */
 import { Filter, X } from 'lucide-react'
 import { Select } from '@/components/ui/field'
 import {

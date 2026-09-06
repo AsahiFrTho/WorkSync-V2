@@ -1,4 +1,5 @@
-﻿import { Badge } from '@/components/ui/badge'
+﻿/** @deprecated — replaced by components/work-sync/PageHeader. Existing imports: app/verification/page.tsx, app/followups/page.tsx, app/learners/page.tsx, app/trainee/page.tsx, app/employer/page.tsx, app/dataquality/page.tsx, app/learners/[id]/page.tsx, app/insights/page.tsx, app/dashboard/page.tsx, app/skillgaps/page.tsx, app/scorecard/page.tsx, app/settings/page.tsx, app/analytics/page.tsx. */
+import { Badge } from '@/components/ui/badge'
 import { ShieldCheck, Calendar } from 'lucide-react'
 
 export function PageHeader({

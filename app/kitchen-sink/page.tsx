@@ -1,0 +1,21 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { ChartFrame, ConsentBadge, DataTable, DetailSheet, EmptyState, FilterBar, LoadingSkeleton, PageHeader, SectionCard, StatTile, StatusPill } from '@/components/work-sync'
+
+type DemoRow = { id: string; name: string; status: string; count: number }
+const rows: DemoRow[] = [{ id: '1', name: 'Pune cohort', status: 'Verified', count: 86 }, { id: '2', name: 'Nashik cohort', status: 'Pending', count: 42 }]
+
+export default function KitchenSinkPage() {
+  const [selected, setSelected] = useState<DemoRow | null>(null)
+  return <main className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8">
+    <PageHeader eyebrow="Component inventory" title="WorkSync primitives" description="A controlled surface for reviewing states, keyboard affordances, and semantic tokens before screens are migrated." />
+    <section aria-labelledby="metrics-label" className="flex flex-col gap-3"><h2 id="metrics-label" className="font-serif text-section-title">StatTile</h2><div className="grid gap-4 md:grid-cols-3"><StatTile label="Verified outcomes" value="1,248" metadata="Across active programmes" icon={undefined} trend={{ value: '+12.4%', direction: 'up' }} onClick={() => setSelected(rows[0])} /><StatTile label="Pending follow-ups" value="86" metadata="Needs review this week" trend={{ value: '-4.2%', direction: 'down' }} /><StatTile label="No change" value="24" metadata="Compared with prior period" trend={{ value: '0.0%', direction: 'flat' }} /></div></section>
+    <section aria-labelledby="states-label" className="flex flex-col gap-3"><h2 id="states-label" className="font-serif text-section-title">Status and consent states</h2><div className="flex flex-wrap gap-3"><StatusPill tone="verified" /><StatusPill tone="pending" /><StatusPill tone="at-risk" /><StatusPill tone="neutral" /><ConsentBadge state="verified" /><ConsentBadge state="pending" /><ConsentBadge state="missing" /><ConsentBadge state="verified" masked /></div></section>
+    <SectionCard title="DataTable" description="Rows are keyboard activatable; numeric columns use tabular figures."><DataTable columns={[{ key: 'name', header: 'Cohort' }, { key: 'status', header: 'Status' }, { key: 'count', header: 'Learners', numeric: true }]} rows={rows} onRowClick={setSelected} /></SectionCard>
+    <div className="grid gap-6 lg:grid-cols-2"><ChartFrame title="ChartFrame" description="Framing only; chart wiring stays with screen components."><div className="flex min-h-48 items-center justify-center border border-dashed border-border text-meta text-muted-foreground">Chart slot</div></ChartFrame><SectionCard title="FilterBar"><FilterBar options={[{ label: 'All programmes', value: 'all' }, { label: 'Maharashtra', value: 'mh' }]} /></SectionCard></div>
+    <section aria-labelledby="feedback-label" className="grid gap-6 lg:grid-cols-2"><div className="flex flex-col gap-3"><h2 id="feedback-label" className="font-serif text-section-title">Feedback states</h2><LoadingSkeleton /><EmptyState title="No follow-ups" description="There are no follow-up records in this filtered view." action={<Button variant="outline">Clear filters</Button>} /></div><SectionCard title="Interaction notes" description="The stat and table above open the same detail sheet. Try keyboard focus and Enter on a row."><p className="text-body leading-relaxed text-muted-foreground">All status indicators retain an icon or shape when color is removed.</p></SectionCard></section>
+    <DetailSheet open={selected !== null} onClose={() => setSelected(null)} title={selected?.name ?? 'Cohort details'} description="DetailSheet · 480px desktop, full width below 768px"><div className="flex flex-col gap-4"><StatusPill tone="verified" label={selected?.status} /><p className="text-body leading-relaxed text-muted-foreground">This drill-in surface is intentionally narrow so the selected record remains connected to its source context.</p><dl className="grid gap-3"><div className="flex justify-between border-b border-border pb-3"><dt className="text-meta text-muted-foreground">Learners</dt><dd className="text-body font-medium tabular-nums">{selected?.count ?? '—'}</dd></div></dl></div></DetailSheet>
+  </main>
+}
