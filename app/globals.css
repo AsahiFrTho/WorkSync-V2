@@ -38,7 +38,7 @@
   --color-primary-foreground: var(--canvas);
   --color-secondary: var(--surface);
   --color-secondary-foreground: var(--ink);
-  --color-muted-foreground: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent-foreground: var(--ink);
   --color-destructive: var(--at-risk);
   --color-success: var(--verified);
@@ -82,7 +82,7 @@
   --secondary: #E8E5DF;
   --secondary-foreground: #252321;
   --muted: #E8E5DF;
-  --muted-foreground: #6F6A63;
+  --muted-foreground: #59544F;
   --accent: #B7863B;
   --accent-foreground: #252321;
   --destructive: #A45F55;
