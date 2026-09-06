@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Briefcase, GraduationCap, IdCard, Landmark, Loader2, AlertTriangle } from 'lucide-react'
 import { ROLES, type Role } from '@/lib/auth/roles'
+import { AccessibilityControls } from '@/components/accessibility-controls'
 
 interface RoleDossier {
   id: Role
@@ -83,7 +84,7 @@ export default function LoginPage() {
             <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface"><Image src="/favicon.png" alt="WorkSync institutional crest" width={44} height={44} className="size-full object-cover" priority /></div>
             <div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span className="font-serif text-xl font-semibold tracking-tight text-foreground sm:text-2xl">WorkSync</span><span className="text-muted-foreground" aria-hidden="true">|</span><span className="text-sm font-semibold text-brand">महाराष्ट्र शासन</span></div><p className="text-xs leading-5 text-muted-foreground">Department of Skills, Employment, Entrepreneurship &amp; Innovation</p></div>
           </div>
-          <span className="hidden text-xs text-muted-foreground sm:block">Institutional access</span>
+          <div className="flex items-center gap-2"><AccessibilityControls /><span className="hidden text-xs text-muted-foreground sm:block">Institutional access</span></div>
         </header>
 
         <main className="flex flex-1 flex-col justify-center py-8 sm:py-10">

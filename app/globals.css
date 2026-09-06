@@ -205,6 +205,29 @@
     display: none;
   }
 }
+html[data-text-scale='small'] { font-size: 93.75%; }
+html[data-text-scale='large'] { font-size: 112.5%; }
+html[data-reduced-motion='true'] *, html[data-reduced-motion='true'] *::before, html[data-reduced-motion='true'] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+
+.contrast {
+  color-scheme: dark;
+  --canvas: #000000;
+  --surface: #101010;
+  --ink: #ffffff;
+  --muted-foreground: #f0f0f0;
+  --border: #ffffff;
+  --brand: #8ec5ff;
+  --primary: #8ec5ff;
+  --primary-foreground: #000000;
+  --muted: #242424;
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --accent: #ffd166;
+  --verified: #7dff9b;
+  --pending: #ffd166;
+  --at-risk: #ff8c8c;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
