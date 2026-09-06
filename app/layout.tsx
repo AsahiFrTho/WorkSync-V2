@@ -45,6 +45,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${sourceSerif.variable} ${geistMono.variable} font-sans antialiased`}
       >
+        <script dangerouslySetInnerHTML={{ __html: `(() => { const key = 'worksync-theme'; const saved = localStorage.getItem(key); const theme = saved === 'light' || saved === 'dark' || saved === 'contrast' ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = theme; })()` }} />
         <ThemeProvider>
           <SessionProvider>
             {children}

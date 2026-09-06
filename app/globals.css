@@ -6,7 +6,7 @@
 
 /* Source of truth for WorkSync semantic tokens; mirror JS chart values in theme.ts. */
 @theme inline {
-  --font-sans: var(--font-geist), Arial, sans-serif;
+  --font-sans: var(--font-inter), Arial, sans-serif;
   --font-serif: var(--font-source-serif), Georgia, serif;
   --font-heading: var(--font-source-serif), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -209,11 +209,48 @@ html[data-text-scale='small'] { font-size: 93.75%; }
 html[data-text-scale='large'] { font-size: 112.5%; }
 html[data-reduced-motion='true'] *, html[data-reduced-motion='true'] *::before, html[data-reduced-motion='true'] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 
-.contrast {
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --canvas: #211F1C;
+  --surface: #2D2A26;
+  --ink: #F2EEE8;
+  --foreground: #F2EEE8;
+  --card: #2D2A26;
+  --card-foreground: #F2EEE8;
+  --popover: #2D2A26;
+  --popover-foreground: #F2EEE8;
+  --brand: #9FC5E8;
+  --primary: #9FC5E8;
+  --primary-foreground: #211F1C;
+  --muted: #3A3631;
+  --muted-foreground: #C7BFB5;
+  --border: color-mix(in srgb, #F2EEE8 22%, transparent);
+  --border-strong: color-mix(in srgb, #9FC5E8 55%, transparent);
+  --input: color-mix(in srgb, #F2EEE8 28%, transparent);
+  --ring: #9FC5E8;
+  --sidebar: #2D2A26;
+  --sidebar-foreground: #F2EEE8;
+  --sidebar-primary: #9FC5E8;
+  --sidebar-primary-foreground: #211F1C;
+  --sidebar-accent: #3A3631;
+  --sidebar-accent-foreground: #F2EEE8;
+  --sidebar-border: color-mix(in srgb, #F2EEE8 22%, transparent);
+  --sidebar-ring: #9FC5E8;
+  --verified: #8DC69D;
+  --pending: #E0B765;
+  --at-risk: #E29A91;
+}
+
+html[data-theme='contrast'] {
   color-scheme: dark;
   --canvas: #000000;
   --surface: #101010;
   --ink: #ffffff;
+  --foreground: #ffffff;
+  --card: #141414;
+  --card-foreground: #ffffff;
+  --popover: #141414;
+  --popover-foreground: #ffffff;
   --muted-foreground: #f0f0f0;
   --border: #ffffff;
   --brand: #8ec5ff;
